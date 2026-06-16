@@ -1,0 +1,237 @@
+{
+  "teams": {
+    "ferrari": {
+      "name": "Ferrari",
+      "color": "Rosso Corsa",
+      "hex": "#DC0000",
+      "flapIndex": 0,
+      "textColor": "white"
+    },
+    "mclaren": {
+      "name": "McLaren",
+      "color": "Papaya Orange",
+      "hex": "#FF8000",
+      "flapIndex": 1,
+      "textColor": "black"
+    },
+    "mercedes": {
+      "name": "Mercedes",
+      "color": "Petronas Teal",
+      "hex": "#00D2BE",
+      "flapIndex": 2,
+      "textColor": "black"
+    },
+    "redbull": {
+      "name": "Red Bull Racing",
+      "color": "Navy Blue",
+      "hex": "#1E41FF",
+      "flapIndex": 3,
+      "textColor": "white"
+    },
+    "astonmartin": {
+      "name": "Aston Martin",
+      "color": "British Racing Green",
+      "hex": "#006F62",
+      "flapIndex": 4,
+      "textColor": "white"
+    },
+    "alpine": {
+      "name": "Alpine",
+      "color": "BWT Pink",
+      "hex": "#FF87BC",
+      "flapIndex": 5,
+      "textColor": "black"
+    },
+    "williams": {
+      "name": "Williams",
+      "color": "Light Blue",
+      "hex": "#005AFF",
+      "flapIndex": 6,
+      "textColor": "white"
+    },
+    "haas": {
+      "name": "Haas",
+      "color": "White",
+      "hex": "#FFFFFF",
+      "flapIndex": 7,
+      "textColor": "black"
+    },
+    "racingbulls": {
+      "name": "Racing Bulls",
+      "color": "Purple",
+      "hex": "#6692FF",
+      "flapIndex": 8,
+      "textColor": "white"
+    },
+    "audi": {
+      "name": "Audi",
+      "color": "Maroon Red",
+      "hex": "#900000",
+      "flapIndex": 9,
+      "textColor": "white"
+    },
+    "cadillac": {
+      "name": "Cadillac",
+      "color": "Gold",
+      "hex": "#FFD700",
+      "flapIndex": 10,
+      "textColor": "black"
+    }
+  },
+  "tires": {
+    "soft": {
+      "name": "Soft",
+      "color": "Red",
+      "hex": "#DC0000",
+      "flapIndex": 0,
+      "textColor": "white"
+    },
+    "medium": {
+      "name": "Medium",
+      "color": "Yellow",
+      "hex": "#FFD700",
+      "flapIndex": 10,
+      "textColor": "black"
+    },
+    "hard": {
+      "name": "Hard",
+      "color": "White",
+      "hex": "#FFFFFF",
+      "flapIndex": 7,
+      "textColor": "black"
+    },
+    "intermediate": {
+      "name": "Intermediate",
+      "color": "Lime Green",
+      "hex": "#7FFF00",
+      "flapIndex": 12,
+      "textColor": "black"
+    },
+    "wet": {
+      "name": "Wet",
+      "color": "Blue",
+      "hex": "#005AFF",
+      "flapIndex": 6,
+      "textColor": "white"
+    }
+  },
+  "flags": {
+    "yellow": {
+      "name": "Yellow Flag",
+      "color": "Yellow",
+      "hex": "#FFD700",
+      "flapIndex": 10,
+      "textColor": "black"
+    },
+    "red": {
+      "name": "Red Flag",
+      "color": "Red",
+      "hex": "#DC0000",
+      "flapIndex": 0,
+      "textColor": "white"
+    },
+    "green": {
+      "name": "Green Flag",
+      "color": "British Racing Green",
+      "hex": "#006F62",
+      "flapIndex": 4,
+      "textColor": "white"
+    },
+    "blue": {
+      "name": "Blue Flag",
+      "color": "Navy Blue",
+      "hex": "#1E41FF",
+      "flapIndex": 3,
+      "textColor": "white"
+    },
+    "black": {
+      "name": "Black Flag",
+      "color": "Black",
+      "hex": "#000000",
+      "flapIndex": 11,
+      "textColor": "white"
+    },
+    "blackwhite": {
+      "name": "Black & White Flag",
+      "color": "White",
+      "hex": "#FFFFFF",
+      "flapIndex": 7,
+      "textColor": "black"
+    },
+    "checkered": {
+      "name": "Checkered Flag",
+      "colors": ["Black", "White"],
+      "hex": ["#000000", "#FFFFFF"],
+      "flapIndex": [11, 7],
+      "textColor": "white"
+    },
+    "safetyCar": {
+      "name": "Safety Car",
+      "color": "Yellow",
+      "hex": "#FFD700",
+      "flapIndex": 10,
+      "textColor": "black"
+    },
+    "vsc": {
+      "name": "Virtual Safety Car",
+      "color": "Yellow",
+      "hex": "#FFD700",
+      "flapIndex": 10,
+      "textColor": "black"
+    }
+  },
+  "sectors": {
+    "personalBest": {
+      "name": "Personal Best",
+      "color": "Lime Green",
+      "hex": "#7FFF00",
+      "flapIndex": 12,
+      "textColor": "black"
+    },
+    "overallBest": {
+      "name": "Overall Best",
+      "color": "Purple",
+      "hex": "#A020F0",
+      "flapIndex": 8,
+      "textColor": "white"
+    },
+    "slower": {
+      "name": "Slower",
+      "color": "Yellow",
+      "hex": "#FFD700",
+      "flapIndex": 10,
+      "textColor": "black"
+    }
+  },
+  "utility": {
+    "blank": {
+      "name": "Blank / Off",
+      "color": "Black",
+      "hex": "#000000",
+      "flapIndex": 11,
+      "textColor": "white"
+    },
+    "drs": {
+      "name": "DRS Enabled",
+      "color": "Lime Green",
+      "hex": "#7FFF00",
+      "flapIndex": 12,
+      "textColor": "black"
+    }
+  },
+  "flapColorMap": {
+    "0": { "color": "Rosso Corsa / Red", "hex": "#DC0000", "usedBy": ["Ferrari", "Red Flag", "Soft Tire", "F1 Logo"] },
+    "1": { "color": "Papaya Orange", "hex": "#FF8000", "usedBy": ["McLaren"] },
+    "2": { "color": "Petronas Teal", "hex": "#00D2BE", "usedBy": ["Mercedes"] },
+    "3": { "color": "Navy Blue", "hex": "#1E41FF", "usedBy": ["Red Bull", "Blue Flag"] },
+    "4": { "color": "British Racing Green", "hex": "#006F62", "usedBy": ["Aston Martin", "Green Flag"] },
+    "5": { "color": "BWT Pink", "hex": "#FF87BC", "usedBy": ["Alpine"] },
+    "6": { "color": "Light Blue", "hex": "#005AFF", "usedBy": ["Williams", "Wet Tire"] },
+    "7": { "color": "White", "hex": "#FFFFFF", "usedBy": ["Haas", "Hard Tire", "Checkered"] },
+    "8": { "color": "Purple", "hex": "#6692FF", "usedBy": ["Racing Bulls", "Sector 3 Best", "Fastest Lap"] },
+    "9": { "color": "Maroon Red", "hex": "#900000", "usedBy": ["Audi"] },
+    "10": { "color": "Gold / Yellow", "hex": "#FFD700", "usedBy": ["Cadillac", "Yellow Flag", "Safety Car", "Medium Tire", "Sector Slower"] },
+    "11": { "color": "Black", "hex": "#000000", "usedBy": ["Blank", "Checkered", "Black Flag"] },
+    "12": { "color": "Lime Green", "hex": "#7FFF00", "usedBy": ["Sector 2 PB", "Inter Tire", "DRS"] }
+  }
+}
