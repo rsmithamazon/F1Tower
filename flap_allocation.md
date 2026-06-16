@@ -37,13 +37,9 @@
 | **Remaining** | | **4** | |
 
 ### Right column extras — ideas for the 4 spare:
-
-- Colon ":" (for lap times like 1:23)
 - Period "." (for 1:23.4)
 - Dash "-" (gaps like +0.3)
-- Blank/space (essential!)
 
-**Wait — you NEED all 4 of those.** That uses all 50.
 
 ---
 
