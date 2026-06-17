@@ -1,154 +1,203 @@
-# 🏎️ Split Flap F1 Tower Display
+# 🏎️ Split Flap F1 Timing Tower
 
-A mechanical split-flap display themed around Formula 1 — showing live race data, driver standings, timing, and animated transitions with team livery colors and a stop-motion F1 car animation.
+A mechanical split-flap display emulating the F1 timing tower — showing live positions, lap times, sector colors, pit stops, flags, and animated transitions with team livery colors.
 
 ## Overview
 
-- **4 columns × 10 rows** (40 split-flap modules)
-- **50 flaps per module** (2,000 total flaps)
-- Real-time F1 data: standings, lap times, pit stops, flags
-- Animated transitions: rolling rainbow, car cascade, checkered wipe
+- **5 columns × 5 rows** (25 split-flap modules)
+- **45 flaps per module** (1,125 total)
+- 3 unique drum types (Col 0, Col 1, Cols 2–4)
+- Real-time F1 data: standings, gaps, sectors, tires, flags
+- Animated transitions: car cascade, rolling rainbow, checkered wipe
 - No custom PCBs — built entirely with off-the-shelf components
 
-## Demo Sequences
+## Display Layout
 
-| Sequence | Description |
-|----------|-------------|
-| Race Start | Red flood → lights out (all black) |
-| Leaderboard Reveal | F1 car drives down col 1 + rainbow cascade → driver standings |
-| Race Finish | Checkered wipe → car animation + rainbow → final results |
-| Position Change | Live updates with configurable delay |
-| Pit Stop | Driver name flips to "PIT" with team logo |
-| Fastest Lap | Purple wave → driver + time |
+```
+[Col 0]  [Col 1]  [Col 2] [Col 3] [Col 4]
+ Pos/     Logo/    Text/   Text/   Text/
+ Status   Color    Num     Num     Num
+```
+
+Example — Driver Standings:
+```
+[ 1] [🔴] [N] [O] [R]
+[ 2] [◇ ] [L] [E] [C]
+[ 3] [★ ] [V] [E] [R]
+[ 4] [→ ] [H] [A] [M]
+[ 5] [⬡ ] [N] [O] [R]
+```
+
+## Column Specs
+
+| | Col 0 | Col 1 | Col 2–4 |
+|--|-------|-------|---------|
+| Numbers 0–9 | ✅ | ✅ | ✅ |
+| Letters A–Z | — | — | ✅ |
+| Team Logos | — | ✅ (11) | — |
+| Car Frames | ✅ (5+5 spare) | — | — |
+| Colors (base 8) | ✅ | ✅ | ✅ |
+| Colors (team 5) | ✅ | ✅ | — |
+| Symbols | +, - | -, . | - |
+| Icons | 🏆, P | — | — |
+| Spare | 8 | 9 | 0 |
+
+## Color System
+
+### Base 8 (all columns)
+
+| Color | Flags | Tires | Sectors | Teams |
+|-------|-------|-------|---------|-------|
+| Red | Red flag | Soft | — | Ferrari, Audi |
+| White | — | Hard | — | Haas |
+| Black | Black flag | — | — | Blank/space |
+| Yellow | Yellow flag, SC | Medium | Slower | Cadillac |
+| Green | Green flag | Intermediate | PB | Aston Martin |
+| Blue | Blue flag | Wet | — | Red Bull, Williams |
+| Purple | — | — | Fastest, FL | Racing Bulls |
+| Orange | — | — | — | McLaren |
+
+### 5 Additional Team Colors (Col 0 + Col 1 only)
+
+Teal (Mercedes), Pink (Alpine), Light Blue (Williams), Maroon (Audi), Gold (Cadillac)
+
+### Drum Color Order (dark → light)
+
+```
+Black → Red → Blue → Green → Purple → Orange → Yellow → White
+```
+
+Ensures forward flips for key transitions: startup (black→white), lights out (red→white).
+
+## Display Modes
+
+| # | Mode | Description |
+|---|------|-------------|
+| 1 | Name + Gap | 2 rows per driver: name then gap time |
+| 2 | Names Only | 5 drivers with position + logo + initials |
+| 3 | Flip Name ↔ Time | Same row alternates between name and time |
+| 4 | Name + Tire/Status | Position + name + tire color on Col 4 |
+| 5 | Standings Cycle | Pages through top 5/10/15/20, optional points toggle |
+| 6 | Constructor Standings | Team logo + abbreviation, cycles to points |
+| 7 | Single Driver Focus | Full details: team color bar, time, sectors |
+| 8 | Checkered Flag | Alternating black/white |
+| 9 | Full Board Color | All red/yellow/green/purple (flags + events) |
+| 10 | Safety Car / VSC | Yellow + text |
+| 11 | Lights Out | Red cascade → ALL WHITE = GO! |
+| 12 | Quali Elimination | Green (advanced) / Red (eliminated) markers |
+| 13 | Race Winner | Trophy + winner + podium |
+| 14 | Fastest Lap | Purple flash → driver + time detail |
+
+**Total end states: 22** (see `end_states_final.md`)
+
+## Transitions
+
+All transitions are **configurable** — user selects preferred style per event.
+
+| Style | Description |
+|-------|-------------|
+| Instant | All 25 units flip simultaneously |
+| Cascade Down/Up | Row by row, top→bottom or bottom→top |
+| Sweep L→R | Column by column |
+| In-Place Sequence | P1 resolves, then P2, then P3... |
+| Car Down | Car animates down Col 0 |
+| Car + Rainbow | Car descends, rainbow fills L→R behind |
+| Car + Color | Car descends, selectable color fills behind |
+| Rainbow | Rolling color wave across board |
+
+### Key Behaviors
+
+- **Flags** — always instant in, configurable out
+- **Race events** (pit, tire) — single row/cell change
+- **Page scroll** — configurable delay (default 5–8 sec), cascade or instant
+- **Startup** — BLACK → WHITE (same as lights out), then selectable transition to first mode
+- **Shutdown** — cascade to ALL BLACK
+
+See `transitions.md` for full configuration options.
+
+## Session Modes
+
+| Session | Behavior |
+|---------|----------|
+| Practice | Position + name → sector colors during lap → time after |
+| Qualifying | Same + green/red elimination markers per round |
+| Sprint | Shortened race mode |
+| Race | Lights out → live standings → events → finish |
+
+## Race Events
+
+| Event | Display | Duration |
+|-------|---------|----------|
+| Position change | Update with X sec delay | Configurable |
+| Pit stop | Name → "PIT", logo stays | Until pit exit |
+| Tire change | Tire color on Col 0 | 5 sec |
+| Yellow/Red flag | Entire board that color | Until cleared |
+| Safety car | Yellow + text | Until SC in |
+| Blue/BW flag | Color on that driver | 5 sec |
+| Finish | Checkered → car + rainbow → standings | Full sequence |
 
 ## Architecture
 
 ```
-[Master ESP32/Nano] ──I2C──→ [Nano 1] → 4 motors
-                              [Nano 2] → 4 motors
-                              [Nano 3] → 4 motors
+[Master ESP32/Nano] ──I2C──→ [Nano 1] → 4–5 motors
+                              [Nano 2] → 4–5 motors
                               ...
-                              [Nano 10] → 4 motors
+                              [Nano 6] → 4–5 motors
 ```
 
-- **10–13 Arduino Nanos** coordinated via I2C bus
-- **ULN2003 driver boards** (off-the-shelf blue breakout boards)
-- **28BYJ-48 stepper motors** (one per module)
+- **~6 Arduino Nanos** (25 modules ÷ 4–5 each)
+- **ULN2003 driver boards** (off-the-shelf)
+- **28BYJ-48 stepper motors**
 - **Hall effect sensors** for homing
-- **ESP-01** on master for WiFi control (optional)
-- **5V 15A PSU** for motor power
-
-## Display Layout
-
-### Left Column (Col 0)
-
-| Flaps | Content |
-|-------|---------|
-| 0–9 | F1 car animation frames |
-| 10–19 | Numbers 0–9 |
-| 20–30 | Team logos (11 teams) |
-| 31–43 | Colors (13) |
-| 44–49 | Extras (blank, icons) |
-
-### Right Columns (Cols 1–3)
-
-| Flaps | Content |
-|-------|---------|
-| 0–25 | Letters A–Z |
-| 26–35 | Numbers 0–9 |
-| 36–48 | Colors (13) |
-| 49 | Dash (-) |
-
-Flap order is **transition-optimized** — common sequences (blank → car → number → logo) are adjacent on the drum to minimize spin time.
-
-## Color System
-
-13 colors serving 11 F1 teams + flags + tires + timing sectors:
-
-| Color | Team | Also serves |
-|-------|------|-------------|
-| Rosso Corsa (Red) | Ferrari | Red flag, Soft tire |
-| Papaya Orange | McLaren | — |
-| Petronas Teal | Mercedes | — |
-| Navy Blue | Red Bull | Blue flag |
-| British Racing Green | Aston Martin | Green flag |
-| BWT Pink | Alpine | — |
-| Light Blue | Williams | Wet tire |
-| White | Haas | Hard tire, Checkered |
-| Purple | Racing Bulls | Sector 3, Fastest lap |
-| Maroon Red | Audi | — |
-| Gold/Yellow | Cadillac | Yellow flag, SC, Medium tire |
-| Black | — | Blank/space, Checkered |
-| Lime Green | — | Sector 2 PB, Inter tire, DRS |
-
-## Session Modes
-
-| Mode | Behavior |
-|------|----------|
-| Practice | Position + name → sector colors during lap → time after lap |
-| Qualifying | Same as practice + green/red elimination markers |
-| Sprint | Shortened race mode |
-| Race | Lights out → live standings → events → finish celebration |
+- **5V 10A PSU**
 
 ## Performance
 
 | Metric | Value |
 |--------|-------|
-| Step delay | 1500–2000μs |
 | Time per flap | 60–80ms |
-| Full drum revolution | 3–4 seconds |
-| Car animation (10 frames, 1 row) | 0.5–0.7 seconds |
-| Car full descent (10 rows) | 4–7 seconds (depending on overlap) |
+| Full drum revolution (45 flaps) | 2.7–3.6 sec |
+| Car animation (5 frames, 1 row) | 0.3–0.4 sec |
+| Car full descent (5 rows) | 2–3.5 sec |
 
 ## Bill of Materials
 
 | Item | Qty | Est. Cost |
 |------|-----|-----------|
-| Arduino Nano clones | 10–13 | $30 |
-| ULN2003 + 28BYJ-48 combos | 40 | $60 |
-| Hall effect sensors + magnets | 40 | $20 |
-| 5V 15A PSU | 1 | $15 |
+| Arduino Nano clones | 6–7 | $18 |
+| ULN2003 + 28BYJ-48 combos | 25 | $38 |
+| Hall effect sensors + magnets | 25 | $12 |
+| 5V 10A PSU | 1 | $12 |
 | ESP-01 WiFi module | 1 | $3 |
-| 3D printer filament (PLA/PETG) | ~2–3kg | $50 |
-| Flap material (cardstock/PVC) | 2000 flaps | $30 |
-| Wiring, connectors, misc | — | $20 |
-| **Total** | | **~$230** |
-
-## Build Guide
-
-### 1. Prototype (Single Unit)
-
-1. Print frame, drum, motor mount from STL files
-2. Wire Nano → ULN2003 → 28BYJ-48 + Hall sensor
-3. Flash `display_modes.ino`
-4. Cut 50 flaps from cardstock, print characters
-5. Assemble and test homing + character positioning
-
-### 2. Scale to Full Display
-
-1. Print all 40 module frames (optimized for tighter spacing)
-2. Laser cut or Cricut 2,000 flaps
-3. Wire I2C bus between 10–13 Nanos
-4. Flash master + slave firmware
-5. Mount to frame, connect PSU
-6. Configure WiFi + data feed
+| 3D printer filament | ~1.5kg | $30 |
+| Flap material (cardstock/PVC) | 1,125 flaps | $20 |
+| Wiring, connectors | — | $15 |
+| **Total** | | **~$150** |
 
 ## File Structure
 
 ```
 splitflap-f1/
-├── README.md                  ← You are here
-├── PROJECT_SUMMARY.md         ← Full project discussion + decisions
-├── display_modes.ino          ← Firmware: end states, animations, helpers
-├── color_config.json          ← Team/tire/flag colors with hex + flap indices
-├── color_allocation.md        ← Color analysis and overlap mapping
-├── flap_allocation.md         ← Detailed flap position mapping
-└── end_states.md              ← All display modes, race events, sequences
+├── README.md                    ← You are here
+├── PROJECT_SUMMARY.md           ← Full project discussion + decisions
+├── flap_allocation_v3.md        ← Final flap positions per column (45 flaps)
+├── end_states_final.md          ← All 22 end states + power on/off sequences
+├── transitions.md               ← All transition styles + configurable settings
+├── display_modes_v2.md          ← Display mode details (5×5)
+├── color_config.json            ← Color definitions (hex, indices, teams, tires, flags)
+├── display_modes.ino            ← Firmware: states + animations (WIP)
+├── color_allocation.md          ← Color analysis (reference)
+├── end_states.md                ← Earlier end states (superseded by final)
+├── end_states_and_sequences.md  ← Earlier sequences (superseded)
+└── flap_allocation.md           ← Original allocation (superseded by v3)
 ```
 
 ## Inspirations
 
-- [scottbez1/splitflap](https://github.com/scottbez1/splitflap) — PCB-based design with ESP32
-- [davidkingsman/split-flap](https://github.com/davidkingsman/split-flap) — Simple Nano-per-unit design
-- [JonnyBooker/split-flap](https://github.com/JonnyBooker/split-flap) — Updated fork, simplified
-- [Arne](https://www.printables.com/model/1365640-4-letter-split-flap-display-with-rs232-uart-daisy) - 3d print files used
+- [scottbez1/splitflap](https://github.com/scottbez1/splitflap) — PCB-based, ESP32
+- [davidkingsman/split-flap](https://github.com/davidkingsman/split-flap) — Simple Nano design
+- [JonnyBooker/split-flap](https://github.com/JonnyBooker/split-flap) — Updated fork
+
+## License
+
+TBD

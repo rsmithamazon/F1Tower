@@ -1,0 +1,140 @@
+{
+  "colorSystem": {
+    "description": "8 base colors on ALL columns. 5 additional team colors on Col 0 + Col 1 only.",
+    "baseColors": 8,
+    "teamColors": 5,
+    "totalUnique": 13
+  },
+  "baseColors": {
+    "red": {
+      "name": "Red",
+      "hex": "#DC0000",
+      "flapIndex": { "col0": 15, "col1": 21, "col2-4": 36 },
+      "textColor": "white",
+      "usedBy": ["Ferrari", "Audi", "Red Flag", "Soft Tire"]
+    },
+    "white": {
+      "name": "White",
+      "hex": "#FFFFFF",
+      "flapIndex": { "col0": 16, "col1": 22, "col2-4": 37 },
+      "textColor": "black",
+      "usedBy": ["Haas", "Hard Tire", "Checkered"]
+    },
+    "black": {
+      "name": "Black",
+      "hex": "#000000",
+      "flapIndex": { "col0": 17, "col1": 23, "col2-4": 38 },
+      "textColor": "white",
+      "usedBy": ["Blank/Space", "Black Flag", "Checkered"]
+    },
+    "yellow": {
+      "name": "Yellow",
+      "hex": "#FFD700",
+      "flapIndex": { "col0": 18, "col1": 24, "col2-4": 39 },
+      "textColor": "black",
+      "usedBy": ["Cadillac", "Yellow Flag", "Safety Car", "Medium Tire", "Sector Slower"]
+    },
+    "green": {
+      "name": "Green",
+      "hex": "#006F62",
+      "flapIndex": { "col0": 19, "col1": 25, "col2-4": 40 },
+      "textColor": "white",
+      "usedBy": ["Aston Martin", "Green Flag", "Intermediate Tire", "Sector PB"]
+    },
+    "blue": {
+      "name": "Blue",
+      "hex": "#1E41FF",
+      "flapIndex": { "col0": 20, "col1": 26, "col2-4": 41 },
+      "textColor": "white",
+      "usedBy": ["Red Bull", "Williams", "Blue Flag", "Wet Tire"]
+    },
+    "purple": {
+      "name": "Purple",
+      "hex": "#A020F0",
+      "flapIndex": { "col0": 21, "col1": 27, "col2-4": 42 },
+      "textColor": "white",
+      "usedBy": ["Racing Bulls", "Sector Overall Best", "Fastest Lap"]
+    },
+    "orange": {
+      "name": "Orange",
+      "hex": "#FF8000",
+      "flapIndex": { "col0": 22, "col1": 28, "col2-4": 43 },
+      "textColor": "black",
+      "usedBy": ["McLaren"]
+    }
+  },
+  "teamColors": {
+    "description": "Available on Col 0 and Col 1 only",
+    "teal": {
+      "name": "Petronas Teal",
+      "hex": "#00D2BE",
+      "flapIndex": { "col0": 23, "col1": 29 },
+      "textColor": "black",
+      "team": "Mercedes"
+    },
+    "pink": {
+      "name": "BWT Pink",
+      "hex": "#FF87BC",
+      "flapIndex": { "col0": 24, "col1": 30 },
+      "textColor": "black",
+      "team": "Alpine"
+    },
+    "lightBlue": {
+      "name": "Light Blue",
+      "hex": "#005AFF",
+      "flapIndex": { "col0": 25, "col1": 31 },
+      "textColor": "white",
+      "team": "Williams"
+    },
+    "maroon": {
+      "name": "Maroon Red",
+      "hex": "#900000",
+      "flapIndex": { "col0": 26, "col1": 32 },
+      "textColor": "white",
+      "team": "Audi"
+    },
+    "gold": {
+      "name": "Gold",
+      "hex": "#C8A951",
+      "flapIndex": { "col0": 27, "col1": 33 },
+      "textColor": "black",
+      "team": "Cadillac"
+    }
+  },
+  "teams": {
+    "ferrari":      { "name": "Ferrari",       "primaryColor": "red",    "logoIndex": 0 },
+    "mclaren":      { "name": "McLaren",       "primaryColor": "orange", "logoIndex": 1 },
+    "mercedes":     { "name": "Mercedes",      "primaryColor": "teal",   "logoIndex": 2 },
+    "redbull":      { "name": "Red Bull",      "primaryColor": "blue",   "logoIndex": 3 },
+    "astonmartin":  { "name": "Aston Martin",  "primaryColor": "green",  "logoIndex": 4 },
+    "alpine":       { "name": "Alpine",        "primaryColor": "pink",   "logoIndex": 5 },
+    "williams":     { "name": "Williams",      "primaryColor": "lightBlue", "logoIndex": 6 },
+    "haas":         { "name": "Haas",          "primaryColor": "white",  "logoIndex": 7 },
+    "racingbulls":  { "name": "Racing Bulls",  "primaryColor": "purple", "logoIndex": 8 },
+    "audi":         { "name": "Audi",          "primaryColor": "maroon", "logoIndex": 9 },
+    "cadillac":     { "name": "Cadillac",      "primaryColor": "gold",   "logoIndex": 10 }
+  },
+  "tires": {
+    "soft":         { "color": "red",    "label": "S" },
+    "medium":       { "color": "yellow", "label": "M" },
+    "hard":         { "color": "white",  "label": "H" },
+    "intermediate": { "color": "green",  "label": "I" },
+    "wet":          { "color": "blue",   "label": "W" }
+  },
+  "flags": {
+    "red":        { "color": "red",    "fullBoard": true },
+    "yellow":     { "color": "yellow", "fullBoard": true },
+    "green":      { "color": "green",  "fullBoard": false },
+    "blue":       { "color": "blue",   "fullBoard": false, "perDriver": true },
+    "black":      { "color": "black",  "fullBoard": false, "perDriver": true },
+    "blackWhite": { "color": "white",  "fullBoard": false, "perDriver": true },
+    "checkered":  { "colors": ["black", "white"], "fullBoard": true },
+    "safetyCar":  { "color": "yellow", "fullBoard": true, "text": "SAFETY CAR" },
+    "vsc":        { "color": "yellow", "fullBoard": true, "text": "VSC" }
+  },
+  "sectors": {
+    "personalBest": { "color": "green",  "label": "PB" },
+    "overallBest":  { "color": "purple", "label": "OB" },
+    "slower":       { "color": "yellow", "label": "--" }
+  }
+}
