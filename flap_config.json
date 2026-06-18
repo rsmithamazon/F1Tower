@@ -1,0 +1,257 @@
+{
+  "meta": {
+    "description": "Flap position mapping for 5-column, 5-row split-flap display. 45 flaps per unit.",
+    "columns": 5,
+    "rows": 5,
+    "units": 25,
+    "flapsPerUnit": 45,
+    "totalFlaps": 1125,
+    "uniqueDrumTypes": 3,
+    "drumTypes": {
+      "col0": "Position / Status / Animation",
+      "col1": "Logo / Digits / Colors / Symbols",
+      "col2_3_4": "Text / Numbers / Colors (identical)"
+    }
+  },
+
+  "shared": {
+    "description": "Flap positions shared across columns. 0–17 on ALL columns, 18–25 on Col 0 + Col 1.",
+    "baseColors": {
+      "description": "Positions 0–7: 8 base colors on EVERY column",
+      "flaps": [
+        { "pos": 0, "type": "color", "id": "black",  "hex": "#000000", "usedBy": ["Blank/Space", "Black Flag", "Checkered"] },
+        { "pos": 1, "type": "color", "id": "red",    "hex": "#DC0000", "usedBy": ["Ferrari", "Audi", "Red Flag", "Soft Tire"] },
+        { "pos": 2, "type": "color", "id": "white",  "hex": "#FFFFFF", "usedBy": ["Haas", "Hard Tire", "Checkered"] },
+        { "pos": 3, "type": "color", "id": "yellow", "hex": "#FFD700", "usedBy": ["Cadillac", "Yellow Flag", "Safety Car", "Medium Tire", "Sector Slower"] },
+        { "pos": 4, "type": "color", "id": "green",  "hex": "#006F62", "usedBy": ["Aston Martin", "Green Flag", "Intermediate Tire", "Sector PB"] },
+        { "pos": 5, "type": "color", "id": "blue",   "hex": "#1E41FF", "usedBy": ["Red Bull", "Williams", "Blue Flag", "Wet Tire"] },
+        { "pos": 6, "type": "color", "id": "purple", "hex": "#A020F0", "usedBy": ["Racing Bulls", "Sector Overall Best", "Fastest Lap"] },
+        { "pos": 7, "type": "color", "id": "orange", "hex": "#FF8000", "usedBy": ["McLaren"] }
+      ]
+    },
+    "numbers": {
+      "description": "Positions 8–17: Digits 0–9 on EVERY column",
+      "flaps": [
+        { "pos": 8,  "type": "number", "value": "0" },
+        { "pos": 9,  "type": "number", "value": "1" },
+        { "pos": 10, "type": "number", "value": "2" },
+        { "pos": 11, "type": "number", "value": "3" },
+        { "pos": 12, "type": "number", "value": "4" },
+        { "pos": 13, "type": "number", "value": "5" },
+        { "pos": 14, "type": "number", "value": "6" },
+        { "pos": 15, "type": "number", "value": "7" },
+        { "pos": 16, "type": "number", "value": "8" },
+        { "pos": 17, "type": "number", "value": "9" }
+      ]
+    },
+    "teamColors": {
+      "description": "Positions 18–22: Team-unique colors on Col 0 and Col 1 only",
+      "flaps": [
+        { "pos": 18, "type": "color", "id": "teal",      "hex": "#00D2BE", "team": "Mercedes" },
+        { "pos": 19, "type": "color", "id": "pink",      "hex": "#FF87BC", "team": "Alpine" },
+        { "pos": 20, "type": "color", "id": "lightBlue", "hex": "#005AFF", "team": "Williams" },
+        { "pos": 21, "type": "color", "id": "maroon",    "hex": "#900000", "team": "Audi" },
+        { "pos": 22, "type": "color", "id": "gold",      "hex": "#C8A951", "team": "Cadillac" }
+      ]
+    },
+    "futureColorSpare": {
+      "description": "Positions 23–25: Reserved on Col 0 + Col 1 for future team colors (same position on both drums)",
+      "flaps": [
+        { "pos": 23, "type": "spare", "id": "future_color_1", "note": "Reserved for future team color" },
+        { "pos": 24, "type": "spare", "id": "future_color_2", "note": "Reserved for future team color" },
+        { "pos": 25, "type": "spare", "id": "future_color_3", "note": "Reserved for future team color" }
+      ]
+    }
+  },
+
+  "col0": {
+    "description": "Position / Status / Animation drum (5 units). Animation grouped at end, frame 15 = last flap.",
+    "totalFlaps": 45,
+    "flaps": [
+      { "pos": 0,  "type": "color",     "id": "black" },
+      { "pos": 1,  "type": "color",     "id": "red" },
+      { "pos": 2,  "type": "color",     "id": "white" },
+      { "pos": 3,  "type": "color",     "id": "yellow" },
+      { "pos": 4,  "type": "color",     "id": "green" },
+      { "pos": 5,  "type": "color",     "id": "blue" },
+      { "pos": 6,  "type": "color",     "id": "purple" },
+      { "pos": 7,  "type": "color",     "id": "orange" },
+      { "pos": 8,  "type": "number",    "value": "0" },
+      { "pos": 9,  "type": "number",    "value": "1" },
+      { "pos": 10, "type": "number",    "value": "2" },
+      { "pos": 11, "type": "number",    "value": "3" },
+      { "pos": 12, "type": "number",    "value": "4" },
+      { "pos": 13, "type": "number",    "value": "5" },
+      { "pos": 14, "type": "number",    "value": "6" },
+      { "pos": 15, "type": "number",    "value": "7" },
+      { "pos": 16, "type": "number",    "value": "8" },
+      { "pos": 17, "type": "number",    "value": "9" },
+      { "pos": 18, "type": "color",     "id": "teal" },
+      { "pos": 19, "type": "color",     "id": "pink" },
+      { "pos": 20, "type": "color",     "id": "lightBlue" },
+      { "pos": 21, "type": "color",     "id": "maroon" },
+      { "pos": 22, "type": "color",     "id": "gold" },
+      { "pos": 23, "type": "spare",     "id": "future_color_1", "note": "Reserved for future team color" },
+      { "pos": 24, "type": "spare",     "id": "future_color_2", "note": "Reserved for future team color" },
+      { "pos": 25, "type": "spare",     "id": "future_color_3", "note": "Reserved for future team color" },
+      { "pos": 26, "type": "icon",      "id": "trophy", "label": "🏆" },
+      { "pos": 27, "type": "icon",      "id": "pit",    "label": "P" },
+      { "pos": 28, "type": "symbol",    "id": "plus",   "label": "+" },
+      { "pos": 29, "type": "symbol",    "id": "dash",   "label": "-" },
+      { "pos": 30, "type": "animation", "id": "car_frame_01", "frame": 1 },
+      { "pos": 31, "type": "animation", "id": "car_frame_02", "frame": 2 },
+      { "pos": 32, "type": "animation", "id": "car_frame_03", "frame": 3 },
+      { "pos": 33, "type": "animation", "id": "car_frame_04", "frame": 4 },
+      { "pos": 34, "type": "animation", "id": "car_frame_05", "frame": 5 },
+      { "pos": 35, "type": "animation", "id": "car_frame_06", "frame": 6 },
+      { "pos": 36, "type": "animation", "id": "car_frame_07", "frame": 7 },
+      { "pos": 37, "type": "animation", "id": "car_frame_08", "frame": 8 },
+      { "pos": 38, "type": "animation", "id": "car_frame_09", "frame": 9 },
+      { "pos": 39, "type": "animation", "id": "car_frame_10", "frame": 10 },
+      { "pos": 40, "type": "animation", "id": "car_frame_11", "frame": 11 },
+      { "pos": 41, "type": "animation", "id": "car_frame_12", "frame": 12 },
+      { "pos": 42, "type": "animation", "id": "car_frame_13", "frame": 13 },
+      { "pos": 43, "type": "animation", "id": "car_frame_14", "frame": 14 },
+      { "pos": 44, "type": "animation", "id": "car_frame_15", "frame": 15 }
+    ],
+    "summary": {
+      "colors": "0–7 base (8) + 18–22 team (5) = 13",
+      "numbers": "8–17 = 10",
+      "futureColors": "23–25 = 3 (shared with Col 1)",
+      "icons": "26–27 (trophy, pit) = 2",
+      "symbols": "28–29 (+, -) = 2",
+      "animation": "30–44 = 15 (ends on last flap)"
+    }
+  },
+
+  "col1": {
+    "description": "Logo / Digits / Colors / Symbols drum (5 units). 3 future-color spare match Col 0, remaining spare at end.",
+    "totalFlaps": 45,
+    "flaps": [
+      { "pos": 0,  "type": "color",  "id": "black" },
+      { "pos": 1,  "type": "color",  "id": "red" },
+      { "pos": 2,  "type": "color",  "id": "white" },
+      { "pos": 3,  "type": "color",  "id": "yellow" },
+      { "pos": 4,  "type": "color",  "id": "green" },
+      { "pos": 5,  "type": "color",  "id": "blue" },
+      { "pos": 6,  "type": "color",  "id": "purple" },
+      { "pos": 7,  "type": "color",  "id": "orange" },
+      { "pos": 8,  "type": "number", "value": "0" },
+      { "pos": 9,  "type": "number", "value": "1" },
+      { "pos": 10, "type": "number", "value": "2" },
+      { "pos": 11, "type": "number", "value": "3" },
+      { "pos": 12, "type": "number", "value": "4" },
+      { "pos": 13, "type": "number", "value": "5" },
+      { "pos": 14, "type": "number", "value": "6" },
+      { "pos": 15, "type": "number", "value": "7" },
+      { "pos": 16, "type": "number", "value": "8" },
+      { "pos": 17, "type": "number", "value": "9" },
+      { "pos": 18, "type": "color",  "id": "teal" },
+      { "pos": 19, "type": "color",  "id": "pink" },
+      { "pos": 20, "type": "color",  "id": "lightBlue" },
+      { "pos": 21, "type": "color",  "id": "maroon" },
+      { "pos": 22, "type": "color",  "id": "gold" },
+      { "pos": 23, "type": "spare",  "id": "future_color_1", "note": "Reserved for future team color" },
+      { "pos": 24, "type": "spare",  "id": "future_color_2", "note": "Reserved for future team color" },
+      { "pos": 25, "type": "spare",  "id": "future_color_3", "note": "Reserved for future team color" },
+      { "pos": 26, "type": "logo",   "id": "ferrari",     "team": "Ferrari" },
+      { "pos": 27, "type": "logo",   "id": "mclaren",     "team": "McLaren" },
+      { "pos": 28, "type": "logo",   "id": "mercedes",    "team": "Mercedes" },
+      { "pos": 29, "type": "logo",   "id": "redbull",     "team": "Red Bull" },
+      { "pos": 30, "type": "logo",   "id": "astonmartin", "team": "Aston Martin" },
+      { "pos": 31, "type": "logo",   "id": "alpine",      "team": "Alpine" },
+      { "pos": 32, "type": "logo",   "id": "williams",    "team": "Williams" },
+      { "pos": 33, "type": "logo",   "id": "haas",        "team": "Haas" },
+      { "pos": 34, "type": "logo",   "id": "racingbulls", "team": "Racing Bulls" },
+      { "pos": 35, "type": "logo",   "id": "audi",        "team": "Audi" },
+      { "pos": 36, "type": "logo",   "id": "cadillac",    "team": "Cadillac" },
+      { "pos": 37, "type": "symbol", "id": "dash",   "label": "-" },
+      { "pos": 38, "type": "symbol", "id": "period", "label": "." },
+      { "pos": 39, "type": "spare",  "id": "spare_1" },
+      { "pos": 40, "type": "spare",  "id": "spare_2" },
+      { "pos": 41, "type": "spare",  "id": "spare_3" },
+      { "pos": 42, "type": "spare",  "id": "spare_4" },
+      { "pos": 43, "type": "spare",  "id": "spare_5" },
+      { "pos": 44, "type": "spare",  "id": "spare_6" }
+    ],
+    "summary": {
+      "colors": "0–7 base (8) + 18–22 team (5) = 13",
+      "numbers": "8–17 = 10",
+      "futureColors": "23–25 = 3 (shared with Col 0)",
+      "logos": "26–36 (11 teams) = 11",
+      "symbols": "37–38 = 2",
+      "spare": "39–44 = 6"
+    }
+  },
+
+  "col2_3_4": {
+    "description": "Text / Numbers / Colors drum — IDENTICAL for columns 2, 3, and 4 (15 units total). No spare.",
+    "totalFlaps": 45,
+    "flaps": [
+      { "pos": 0,  "type": "color",  "id": "black" },
+      { "pos": 1,  "type": "color",  "id": "red" },
+      { "pos": 2,  "type": "color",  "id": "white" },
+      { "pos": 3,  "type": "color",  "id": "yellow" },
+      { "pos": 4,  "type": "color",  "id": "green" },
+      { "pos": 5,  "type": "color",  "id": "blue" },
+      { "pos": 6,  "type": "color",  "id": "purple" },
+      { "pos": 7,  "type": "color",  "id": "orange" },
+      { "pos": 8,  "type": "number", "value": "0" },
+      { "pos": 9,  "type": "number", "value": "1" },
+      { "pos": 10, "type": "number", "value": "2" },
+      { "pos": 11, "type": "number", "value": "3" },
+      { "pos": 12, "type": "number", "value": "4" },
+      { "pos": 13, "type": "number", "value": "5" },
+      { "pos": 14, "type": "number", "value": "6" },
+      { "pos": 15, "type": "number", "value": "7" },
+      { "pos": 16, "type": "number", "value": "8" },
+      { "pos": 17, "type": "number", "value": "9" },
+      { "pos": 18, "type": "letter", "value": "A" },
+      { "pos": 19, "type": "letter", "value": "B" },
+      { "pos": 20, "type": "letter", "value": "C" },
+      { "pos": 21, "type": "letter", "value": "D" },
+      { "pos": 22, "type": "letter", "value": "E" },
+      { "pos": 23, "type": "letter", "value": "F" },
+      { "pos": 24, "type": "letter", "value": "G" },
+      { "pos": 25, "type": "letter", "value": "H" },
+      { "pos": 26, "type": "letter", "value": "I" },
+      { "pos": 27, "type": "letter", "value": "J" },
+      { "pos": 28, "type": "letter", "value": "K" },
+      { "pos": 29, "type": "letter", "value": "L" },
+      { "pos": 30, "type": "letter", "value": "M" },
+      { "pos": 31, "type": "letter", "value": "N" },
+      { "pos": 32, "type": "letter", "value": "O" },
+      { "pos": 33, "type": "letter", "value": "P" },
+      { "pos": 34, "type": "letter", "value": "Q" },
+      { "pos": 35, "type": "letter", "value": "R" },
+      { "pos": 36, "type": "letter", "value": "S" },
+      { "pos": 37, "type": "letter", "value": "T" },
+      { "pos": 38, "type": "letter", "value": "U" },
+      { "pos": 39, "type": "letter", "value": "V" },
+      { "pos": 40, "type": "letter", "value": "W" },
+      { "pos": 41, "type": "letter", "value": "X" },
+      { "pos": 42, "type": "letter", "value": "Y" },
+      { "pos": 43, "type": "letter", "value": "Z" },
+      { "pos": 44, "type": "symbol", "id": "dash", "label": "-" }
+    ],
+    "summary": {
+      "colors": "0–7 base (8) = 8",
+      "numbers": "8–17 = 10",
+      "letters": "18–43 (A–Z) = 26",
+      "symbols": "44 (dash) = 1",
+      "spare": "none (full)"
+    }
+  },
+
+  "positionAlignment": {
+    "description": "What lives at each position across all columns — for firmware lookup",
+    "0-7":   { "all": "Base colors (Black, Red, White, Yellow, Green, Blue, Purple, Orange)" },
+    "8-17":  { "all": "Numbers 0–9" },
+    "18-22": { "col0_col1": "Team colors (Teal, Pink, LightBlue, Maroon, Gold)", "col2_3_4": "Letters A–E" },
+    "23-25": { "col0_col1": "FUTURE COLOR SPARE (3 slots, same position both drums)", "col2_3_4": "Letters F–H" },
+    "26-29": { "col0": "Icons (Trophy, Pit) + Symbols (+, -)", "col1": "Logos (Ferrari–Red Bull)", "col2_3_4": "Letters I–L" },
+    "30-36": { "col0": "Animation frames 1–7", "col1": "Logos (Aston Martin–Cadillac)", "col2_3_4": "Letters M–S" },
+    "37-38": { "col0": "Animation frames 8–9", "col1": "Symbols (dash, period)", "col2_3_4": "Letters T–U" },
+    "39-44": { "col0": "Animation frames 10–15", "col1": "SPARE (6 remaining)", "col2_3_4": "Letters V–Z + dash" }
+  }
+}

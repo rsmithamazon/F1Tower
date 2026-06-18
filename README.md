@@ -28,46 +28,67 @@ Example — Driver Standings:
 [ 5] [⬡ ] [N] [O] [R]
 ```
 
-## Column Specs
+## Flap Allocation (per drum)
+
+All drums share positions 0–17 (colors + numbers). Col 0 and Col 1 share 18–25 (team colors + future color reserve).
+
+| Position | Col 0 | Col 1 | Col 2–4 |
+|----------|-------|-------|---------|
+| 0–7 | Base colors (8) | Base colors (8) | Base colors (8) |
+| 8–17 | Numbers 0–9 | Numbers 0–9 | Numbers 0–9 |
+| 18–22 | Team colors (5) | Team colors (5) | Letters A–E |
+| 23–25 | Future color spare (3) | Future color spare (3) | Letters F–H |
+| 26–29 | Icons + Symbols | Logos (4) | Letters I–L |
+| 30–44 | Animation (15 frames) | Logos (7) + Symbols + Spare (6) | Letters M–Z + dash |
+
+### Column Details
 
 | | Col 0 | Col 1 | Col 2–4 |
 |--|-------|-------|---------|
 | Numbers 0–9 | ✅ | ✅ | ✅ |
-| Letters A–Z | — | — | ✅ |
+| Letters A–Z | — | — | ✅ (26) |
 | Team Logos | — | ✅ (11) | — |
-| Car Frames | ✅ (5+5 spare) | — | — |
+| Car Animation | ✅ (15 frames) | — | — |
 | Colors (base 8) | ✅ | ✅ | ✅ |
 | Colors (team 5) | ✅ | ✅ | — |
+| Future color reserve | ✅ (3) | ✅ (3) | — |
 | Symbols | +, - | -, . | - |
-| Icons | 🏆, P | — | — |
-| Spare | 8 | 9 | 0 |
+| Icons | Trophy, P | — | — |
+| Spare (general) | 0 | 6 | 0 |
+| **Total** | **45** | **45** | **45** |
+
+### Animation (Col 0)
+
+15 car animation frames grouped as a contiguous block at positions 30–44. Frame 15 lands on the last flap, so a single forward sweep through the drum plays the full animation.
+
+### Future Color Reserve (Col 0 + Col 1)
+
+Positions 23–25 are held spare on both Col 0 and Col 1 at the same drum position. If new team colors are needed, both drums can be updated identically without shifting other content.
 
 ## Color System
 
 ### Base 8 (all columns)
 
-| Color | Flags | Tires | Sectors | Teams |
-|-------|-------|-------|---------|-------|
-| Red | Red flag | Soft | — | Ferrari, Audi |
-| White | — | Hard | — | Haas |
-| Black | Black flag | — | — | Blank/space |
-| Yellow | Yellow flag, SC | Medium | Slower | Cadillac |
-| Green | Green flag | Intermediate | PB | Aston Martin |
-| Blue | Blue flag | Wet | — | Red Bull, Williams |
-| Purple | — | — | Fastest, FL | Racing Bulls |
-| Orange | — | — | — | McLaren |
+| Color | Hex | Flags | Tires | Sectors | Teams |
+|-------|-----|-------|-------|---------|-------|
+| Black | #000000 | Black flag | — | — | Blank/space |
+| Red | #DC0000 | Red flag | Soft | — | Ferrari, Audi |
+| White | #FFFFFF | — | Hard | — | Haas |
+| Yellow | #FFD700 | Yellow flag, SC | Medium | Slower | Cadillac |
+| Green | #006F62 | Green flag | Intermediate | PB | Aston Martin |
+| Blue | #1E41FF | Blue flag | Wet | — | Red Bull, Williams |
+| Purple | #A020F0 | — | — | Fastest, FL | Racing Bulls |
+| Orange | #FF8000 | — | — | — | McLaren |
 
 ### 5 Additional Team Colors (Col 0 + Col 1 only)
 
-Teal (Mercedes), Pink (Alpine), Light Blue (Williams), Maroon (Audi), Gold (Cadillac)
-
-### Drum Color Order (dark → light)
-
-```
-Black → Red → Blue → Green → Purple → Orange → Yellow → White
-```
-
-Ensures forward flips for key transitions: startup (black→white), lights out (red→white).
+| Color | Hex | Team |
+|-------|-----|------|
+| Teal | #00D2BE | Mercedes |
+| Pink | #FF87BC | Alpine |
+| Light Blue | #005AFF | Williams |
+| Maroon | #900000 | Audi |
+| Gold | #C8A951 | Cadillac |
 
 ## Display Modes
 
@@ -75,7 +96,7 @@ Ensures forward flips for key transitions: startup (black→white), lights out (
 |---|------|-------------|
 | 1 | Name + Gap | 2 rows per driver: name then gap time |
 | 2 | Names Only | 5 drivers with position + logo + initials |
-| 3 | Flip Name ↔ Time | Same row alternates between name and time |
+| 3 | Flip Name/Time | Same row alternates between name and time |
 | 4 | Name + Tire/Status | Position + name + tire color on Col 4 |
 | 5 | Standings Cycle | Pages through top 5/10/15/20, optional points toggle |
 | 6 | Constructor Standings | Team logo + abbreviation, cycles to points |
@@ -100,7 +121,7 @@ All transitions are **configurable** — user selects preferred style per event.
 | Cascade Down/Up | Row by row, top→bottom or bottom→top |
 | Sweep L→R | Column by column |
 | In-Place Sequence | P1 resolves, then P2, then P3... |
-| Car Down | Car animates down Col 0 |
+| Car Down | Car animates down Col 0 (15 frames) |
 | Car + Rainbow | Car descends, rainbow fills L→R behind |
 | Car + Color | Car descends, selectable color fills behind |
 | Rainbow | Rolling color wave across board |
@@ -157,7 +178,7 @@ See `transitions.md` for full configuration options.
 |--------|-------|
 | Time per flap | 60–80ms |
 | Full drum revolution (45 flaps) | 2.7–3.6 sec |
-| Car animation (5 frames, 1 row) | 0.3–0.4 sec |
+| Car animation (15 frames, 1 row) | 0.9–1.2 sec |
 | Car full descent (5 rows) | 2–3.5 sec |
 
 ## Bill of Materials
@@ -177,20 +198,26 @@ See `transitions.md` for full configuration options.
 ## File Structure
 
 ```
-splitflap-f1/
-├── README.md                    ← You are here
-├── PROJECT_SUMMARY.md           ← Full project discussion + decisions
-├── flap_allocation_v3.md        ← Final flap positions per column (45 flaps)
-├── end_states_final.md          ← All 22 end states + power on/off sequences
-├── transitions.md               ← All transition styles + configurable settings
-├── display_modes_v2.md          ← Display mode details (5×5)
-├── color_config.json            ← Color definitions (hex, indices, teams, tires, flags)
-├── display_modes.ino            ← Firmware: states + animations (WIP)
-├── color_allocation.md          ← Color analysis (reference)
-├── end_states.md                ← Earlier end states (superseded by final)
-├── end_states_and_sequences.md  ← Earlier sequences (superseded)
-└── flap_allocation.md           ← Original allocation (superseded by v3)
+F1 Tower/
+├── README.md                  ← You are here
+├── flap_config.json           ← Flap position mapping per drum (firmware lookup)
+├── color_config.json          ← Color definitions (hex, indices, teams, tires, flags)
+├── flap_allocation_v3.md      ← Flap allocation design rationale
+├── end_states_final.md        ← All 22 end states + power on/off sequences
+├── transitions.md             ← All transition styles + configurable settings
+├── display_modes_v2.md        ← Display mode details (5×5)
+├── ideas.md                   ← Feature ideas and future plans
+└── Archive/
+    ├── end_states.md          ← Earlier end states (superseded)
+    └── end_states_and_sequences.md ← Earlier sequences (superseded)
 ```
+
+## Key Config Files
+
+| File | Purpose |
+|------|---------|
+| `flap_config.json` | Position-to-content mapping for all 3 drum types. Used by firmware to look up which flap position to target for any given content (color, number, letter, logo, animation frame). Positions 0–17 are aligned across all columns. |
+| `color_config.json` | Color definitions with hex values, text contrast colors, team associations, and flag/tire/sector usage. |
 
 ## Inspirations
 
