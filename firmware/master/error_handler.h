@@ -13,29 +13,35 @@
 
 // --- ERROR CODES (see error_codes.md for full reference) ---
 
-// ESP32 system errors (ESP_0xx)
-#define ERR_WIFI_CONNECT_FAILED   "ESP_001"
-#define ERR_WIFI_DISCONNECTED     "ESP_002"
-#define ERR_WIFI_RECONNECTED      "ESP_003"  // info, not error
-#define ERR_NVS_READ_FAILED       "ESP_004"
-#define ERR_NVS_WRITE_FAILED      "ESP_005"
+// Success / Info (ESP_2xx)
+#define INFO_WIFI_CONNECTED       "ESP_200"
+#define INFO_WIFI_RECONNECTED     "ESP_201"
+#define INFO_HOST_CONNECTED       "ESP_202"
+#define INFO_HOST_RECONNECTED     "ESP_203"
+#define INFO_ALL_HOMED            "ESP_204"
+#define INFO_STARTUP_COMPLETE     "ESP_205"
 
-// Host connection errors (ESP_1xx)
-#define ERR_HOST_CONNECT_FAILED   "ESP_100"
-#define ERR_HOST_DISCONNECTED     "ESP_101"
-#define ERR_HOST_TIMEOUT_WARN     "ESP_102"  // no heartbeat 30s
-#define ERR_HOST_TIMEOUT_ERROR    "ESP_103"  // no data 5 min (live session)
-#define ERR_HOST_PARSE_ERROR      "ESP_104"  // invalid JSON from host
+// Client / Logic errors (ESP_4xx)
+#define ERR_CMD_PARSE_ERROR       "ESP_400"  // invalid JSON from host
+#define ERR_CMD_UNKNOWN           "ESP_401"  // unrecognized cmd field
+#define ERR_TRANSITION_INVALID    "ESP_402"  // unknown transition type
+#define ERR_SETTING_INVALID       "ESP_403"  // bad key/value in set command
+#define ERR_ROW_NOT_FOUND         "ESP_404"  // row index out of range
+#define ERR_FLAP_OUT_OF_RANGE     "ESP_405"  // flap position > 44
 
-// I2C / Row controller errors (ESP_2xx)
-#define ERR_ROW_NO_RESPONSE     "ESP_200"  // Pico didn't ACK
-#define ERR_ROW_STALL           "ESP_201"  // Pico reported motor stall
-#define ERR_ROW_NOT_HOMED       "ESP_202"  // Pico reports not homed
-#define ERR_ROW_TIMEOUT         "ESP_203"  // Pico didn't reach target in expected time
-
-// Transition errors (ESP_3xx)
-#define ERR_TRANS_ABORTED         "ESP_300"  // Transition interrupted by higher priority
-#define ERR_TRANS_INVALID_TYPE    "ESP_301"  // Unknown transition type received
+// System / Hardware errors (ESP_5xx)
+#define ERR_WIFI_CONNECT_FAILED   "ESP_500"
+#define ERR_WIFI_DISCONNECTED     "ESP_501"
+#define ERR_HOST_DISCONNECTED     "ESP_502"
+#define ERR_HOST_TIMEOUT_WARN     "ESP_503"  // no heartbeat 30s
+#define ERR_HOST_TIMEOUT_ERROR    "ESP_504"  // no data 5 min (live session)
+#define ERR_ROW_NO_RESPONSE       "ESP_510"  // Pico didn't ACK
+#define ERR_ROW_STALL             "ESP_511"  // Pico reported motor stall
+#define ERR_ROW_NOT_HOMED         "ESP_512"  // Pico reports not homed
+#define ERR_ROW_TIMEOUT           "ESP_513"  // Pico didn't reach target in expected time
+#define ERR_NVS_READ_FAILED       "ESP_520"
+#define ERR_NVS_WRITE_FAILED      "ESP_521"
+#define ERR_TRANS_ABORTED         "ESP_530"  // higher priority interrupted
 
 // --- FUNCTIONS ---
 

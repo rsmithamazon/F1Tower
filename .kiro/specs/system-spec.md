@@ -198,10 +198,12 @@ Or for single-row updates (race events):
 
 Full reference: #[[error_codes.md]]
 
+Error codes follow HTTP-style numbering: 2xx = success/info, 4xx = logic errors, 5xx = system/hardware failures.
+
 | Condition | Visual indicator | Trigger |
 |-----------|-----------------|---------|
-| Data timeout (5 min, live session) | All blue (flap 5) | ESP_103 |
-| Motor stall | Brief row flash | ESP_201 |
+| Data timeout (5 min, live session) | All blue (flap 5) | ESP_504 |
+| Motor stall | Brief row flash | ESP_511 |
 | Normal operation | No indicator | — |
 
 ### Recovery Flow

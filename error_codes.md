@@ -1,122 +1,129 @@
 # F1 Split Flap Tower — Error Codes Reference
 
-All error codes used across the system. Each code identifies the source layer, category, and specific issue.
+All error codes used across the system. Follows HTTP-style numbering convention:
+- **2xx** = Success / Informational
+- **4xx** = Client or logic error (bad input, invalid state, parse failure)
+- **5xx** = System or hardware failure (connectivity, motor, timeout)
 
 ---
 
 ## Format
 
 ```
-[LAYER]_[CATEGORY][NUMBER]
+[LAYER]_[CODE]
 ```
 
 - **Layer**: `ESP` (ESP32 master), `PICO` (Pico row controller), `HOST` (Python host)
-- **Category**: numeric group (0xx = system, 1xx = connection, 2xx = hardware, 3xx = logic)
-- **Number**: specific error within category
+- **Code**: 3-digit number following HTTP convention
 
 ---
 
-## ESP32 Master Errors
+## ESP32 Master Codes
 
-### System (ESP_0xx)
+### Success / Info (ESP_2xx)
 
-| Code | Name | Description | Visual | Recovery |
-|------|------|-------------|--------|----------|
-| ESP_001 | WIFI_CONNECT_FAILED | Could not connect to configured WiFi network | None (pre-display) | Retry with backoff. Check credentials. |
-| ESP_002 | WIFI_DISCONNECTED | WiFi connection lost during operation | None | Auto-reconnect. Log event. |
-| ESP_003 | WIFI_RECONNECTED | WiFi connection restored (info, not error) | None | Clear WiFi error state. |
-| ESP_004 | NVS_READ_FAILED | Could not read config/state from flash | None | Use defaults. Log warning. |
-| ESP_005 | NVS_WRITE_FAILED | Could not write config/state to flash | None | Retry once. Non-critical if transient. |
+| Code | Name | Description |
+|------|------|-------------|
+| ESP_200 | WIFI_CONNECTED | WiFi connection established |
+| ESP_201 | WIFI_RECONNECTED | WiFi connection restored after drop |
+| ESP_202 | HOST_CONNECTED | Host WebSocket client connected |
+| ESP_203 | HOST_RECONNECTED | Host reconnected after disconnect |
+| ESP_204 | ALL_ROWS_HOMED | All row controllers homed successfully |
+| ESP_205 | STARTUP_COMPLETE | Startup sequence finished |
+| ESP_206 | SHUTDOWN_COMPLETE | Clean shutdown finished, state saved |
 
-### Host Connection (ESP_1xx)
+### Client / Logic Errors (ESP_4xx)
 
-| Code | Name | Description | Visual | Recovery |
-|------|------|-------------|--------|----------|
-| ESP_100 | HOST_CONNECT_FAILED | Host WebSocket client never connected | None | Wait for connection. |
-| ESP_101 | HOST_DISCONNECTED | Host WebSocket connection dropped | None | Wait for reconnect. Continue showing last state. |
-| ESP_102 | HOST_TIMEOUT_WARN | No heartbeat from host for 30 seconds | None | Log warning. Host may have crashed. |
-| ESP_103 | HOST_TIMEOUT_ERROR | No data for 5 minutes during live session | **All blue** | Hold blue state until reconnect + new data. |
-| ESP_104 | HOST_PARSE_ERROR | Invalid/malformed JSON received from host | None | Ignore bad message. Log for debug. |
+| Code | Name | Description | Recovery |
+|------|------|-------------|----------|
+| ESP_400 | CMD_PARSE_ERROR | Invalid/malformed JSON from host | Ignore bad message. Log for debug. |
+| ESP_401 | CMD_UNKNOWN | Unrecognized "cmd" field in message | Ignore. Log. |
+| ESP_402 | TRANSITION_INVALID | Unknown transition type requested | Fallback to instant. Log. |
+| ESP_403 | SETTING_INVALID | Invalid key or value in "set" command | Reject. Send error back to host. |
+| ESP_404 | ROW_NOT_FOUND | Row index out of range (0-4) | Ignore command. Log. |
+| ESP_405 | FLAP_OUT_OF_RANGE | Flap position > 44 in computed target | Clamp to 44. Log warning. |
 
-### I2C / Row Controller Communication (ESP_2xx)
-
-| Code | Name | Description | Visual | Recovery |
-|------|------|-------------|--------|----------|
-| ESP_200 | ROW_NO_RESPONSE | Pico didn't ACK on I2C write | None | Retry 3x. If persistent, log and skip row. |
-| ESP_201 | ROW_STALL | Pico reported motor stall/error | Brief flash on affected row | Re-home that row. |
-| ESP_202 | ROW_NOT_HOMED | Pico reports not-homed state | None | Send home command to that row. |
-| ESP_203 | ROW_TIMEOUT | Pico didn't reach target in expected time | None | Log. May indicate mechanical jam. |
-
-### Transition (ESP_3xx)
+### System / Hardware Errors (ESP_5xx)
 
 | Code | Name | Description | Visual | Recovery |
 |------|------|-------------|--------|----------|
-| ESP_300 | TRANS_ABORTED | Transition interrupted by higher-priority command | None | Expected behavior (flag override). Log for audit. |
-| ESP_301 | TRANS_INVALID_TYPE | Unknown transition type in command | None | Fallback to TRANS_INSTANT. Log error. |
+| ESP_500 | WIFI_CONNECT_FAILED | Could not connect to WiFi network | None (pre-display) | Retry with backoff. |
+| ESP_501 | WIFI_DISCONNECTED | WiFi connection lost during operation | None | Auto-reconnect. |
+| ESP_502 | HOST_DISCONNECTED | Host WebSocket connection dropped | None | Wait for reconnect. Show last state. |
+| ESP_503 | HOST_TIMEOUT_WARN | No heartbeat from host for 30 seconds | None | Log warning. |
+| ESP_504 | HOST_TIMEOUT_ERROR | No data for 5 min during live session | **All blue** | Hold blue until reconnect + new data. |
+| ESP_510 | ROW_NO_RESPONSE | Pico didn't ACK on I2C write | None | Retry 3x. If persistent, skip row. |
+| ESP_511 | ROW_STALL | Pico reported motor stall/error | Brief row flash | Re-home that row. |
+| ESP_512 | ROW_NOT_HOMED | Pico reports not-homed state | None | Send home command. |
+| ESP_513 | ROW_TIMEOUT | Pico didn't reach target in expected time | None | Log. Mechanical jam likely. |
+| ESP_520 | NVS_READ_FAILED | Could not read config/state from flash | None | Use defaults. |
+| ESP_521 | NVS_WRITE_FAILED | Could not write config/state to flash | None | Retry once. Non-critical. |
+| ESP_530 | TRANSITION_ABORTED | Transition interrupted by higher priority | None | Expected (flag override). Log for audit. |
 
 ---
 
-## Pico Slave Errors
+## Pico Row Controller Codes
 
-### System (PICO_0xx)
+### Success / Info (PICO_2xx)
 
-| Code | Name | Description | Recovery |
-|------|------|-------------|----------|
-| PICO_001 | FLASH_READ_FAILED | Could not read stored positions from flash | Set all positions to UNKNOWN. Force home. |
-| PICO_002 | FLASH_WRITE_FAILED | Could not write positions to flash | Non-critical. Positions lost on next power cycle. |
-| PICO_003 | PIO_INIT_FAILED | PIO state machine failed to initialize | Fatal. Requires reflash or hardware check. |
+| Code | Name | Description |
+|------|------|-------------|
+| PICO_200 | HOMED_OK | All motors homed successfully |
+| PICO_201 | TARGETS_REACHED | All motors reached commanded positions |
+| PICO_202 | ANIMATION_COMPLETE | Frame sequence finished |
 
-### Motor / Hardware (PICO_1xx)
-
-| Code | Name | Description | Recovery |
-|------|------|-------------|----------|
-| PICO_100 | MOTOR_STALL | Motor didn't complete steps in expected time | Report to master. Re-home this motor. |
-| PICO_101 | MOTOR_OVERCURRENT | Unexpected current draw (if sensing available) | Stop motor. Report error. |
-| PICO_102 | HALL_NO_TRIGGER | Hall sensor never triggered during homing (full revolution + extra) | Motor or sensor failure. Report to master. |
-| PICO_103 | HALL_STUCK | Hall sensor continuously triggered (magnet stuck or sensor failure) | Report to master. Cannot home reliably. |
-
-### Command (PICO_2xx)
+### Client / Logic Errors (PICO_4xx)
 
 | Code | Name | Description | Recovery |
 |------|------|-------------|----------|
-| PICO_200 | CMD_INVALID | Unrecognized command byte received | Ignore. Report to master on next status read. |
-| PICO_201 | CMD_OUT_OF_RANGE | Target flap position > 44 | Ignore. Report error. |
-| PICO_202 | CMD_WHILE_HOMING | Received GOTO while homing in progress | Queue command, execute after homing completes. |
+| PICO_400 | CMD_INVALID | Unrecognized command byte received | Ignore. Report on next status read. |
+| PICO_401 | FLAP_OUT_OF_RANGE | Target flap position > 44 | Ignore. Report error. |
+| PICO_402 | CMD_WHILE_HOMING | Received GOTO while homing in progress | Queue command, execute after homing. |
+
+### System / Hardware Errors (PICO_5xx)
+
+| Code | Name | Description | Recovery |
+|------|------|-------------|----------|
+| PICO_500 | MOTOR_STALL | Motor didn't complete steps in expected time | Report to master. Re-home this motor. |
+| PICO_501 | HALL_NO_TRIGGER | Hall sensor never triggered during homing | Motor or sensor failure. Report. |
+| PICO_502 | HALL_STUCK | Hall sensor continuously triggered | Sensor failure. Report. Cannot home. |
+| PICO_510 | FLASH_READ_FAILED | Could not read stored positions | Set positions to UNKNOWN. Force home. |
+| PICO_511 | FLASH_WRITE_FAILED | Could not write positions to flash | Non-critical. Positions lost on power cycle. |
+| PICO_520 | PIO_INIT_FAILED | PIO state machine failed to initialize | Fatal. Requires reflash or hardware check. |
 
 ---
 
-## Host (Python) Errors
+## Host (Python) Codes
 
-### System (HOST_0xx)
+### Success / Info (HOST_2xx)
 
-| Code | Name | Description | Recovery |
-|------|------|-------------|----------|
-| HOST_001 | CONFIG_LOAD_FAILED | Could not read/parse config.json | Exit with error message. |
-| HOST_002 | CONFIG_INVALID | Config file missing required fields | Exit with details of missing fields. |
+| Code | Name | Description |
+|------|------|-------------|
+| HOST_200 | ESP32_CONNECTED | WebSocket connection established |
+| HOST_201 | ESP32_RECONNECTED | Reconnected after disconnect |
+| HOST_202 | API_CONNECTED | F1 data source connected |
+| HOST_203 | SESSION_STARTED | Live session data flowing |
 
-### Connection (HOST_1xx)
-
-| Code | Name | Description | Recovery |
-|------|------|-------------|----------|
-| HOST_100 | ESP32_CONNECT_FAILED | Could not establish WebSocket to ESP32 | Retry with backoff. Check IP/port. |
-| HOST_101 | ESP32_DISCONNECTED | WebSocket connection to ESP32 lost | Auto-reconnect. Re-send full state on reconnect. |
-| HOST_102 | ESP32_SEND_FAILED | Failed to send command (connection issue) | Queue command. Retry on reconnect. |
-
-### Data Source (HOST_2xx)
+### Client / Logic Errors (HOST_4xx)
 
 | Code | Name | Description | Recovery |
 |------|------|-------------|----------|
-| HOST_200 | API_CONNECT_FAILED | Could not connect to F1 data source | Retry. Operate without live data (manual mode). |
-| HOST_201 | API_DISCONNECTED | F1 data source connection dropped | Auto-reconnect. |
-| HOST_202 | API_PARSE_ERROR | Invalid data format from F1 source | Skip bad message. Log for debug. |
-| HOST_203 | DATA_STALE | No new data from F1 source for extended period | Log warning. May indicate session ended or API issue. |
+| HOST_400 | CONFIG_INVALID | Config file missing required fields | Exit with error detail. |
+| HOST_401 | MODE_UNKNOWN | Unrecognized display mode requested | Stay in current mode. Log. |
+| HOST_402 | DRIVER_NOT_FOUND | Driver code not in standings data | Skip. Data sync issue. |
+| HOST_403 | API_PARSE_ERROR | Invalid data format from F1 source | Skip bad message. Log. |
 
-### Display Logic (HOST_3xx)
+### System Errors (HOST_5xx)
 
 | Code | Name | Description | Recovery |
 |------|------|-------------|----------|
-| HOST_300 | MODE_UNKNOWN | Attempted to switch to unrecognized display mode | Stay in current mode. Log error. |
-| HOST_301 | DRIVER_NOT_FOUND | Referenced driver code doesn't exist in standings | Skip. May indicate data sync issue. |
+| HOST_500 | CONFIG_LOAD_FAILED | Could not read/parse config.json | Exit with message. |
+| HOST_501 | ESP32_CONNECT_FAILED | Could not establish WebSocket | Retry with backoff. |
+| HOST_502 | ESP32_DISCONNECTED | WebSocket to ESP32 lost | Auto-reconnect. Re-send full state. |
+| HOST_503 | ESP32_SEND_FAILED | Failed to send command | Queue. Retry on reconnect. |
+| HOST_510 | API_CONNECT_FAILED | Could not connect to F1 data source | Retry. Manual mode fallback. |
+| HOST_511 | API_DISCONNECTED | F1 data source connection dropped | Auto-reconnect. |
+| HOST_512 | DATA_STALE | No new data from F1 source for extended period | Log warning. Session may have ended. |
 
 ---
 
@@ -125,9 +132,9 @@ All error codes used across the system. Each code identifies the source layer, c
 | Level | Meaning | Action |
 |-------|---------|--------|
 | **FATAL** | System cannot continue | Halt/restart required |
-| **ERROR** | Something failed, needs attention | Log, attempt recovery, report to user |
-| **WARN** | Unexpected but recoverable | Log, continue operation |
-| **INFO** | Notable event (not an error) | Log for audit trail |
+| **ERROR** | Something failed, needs attention | Log, attempt recovery, report |
+| **WARN** | Unexpected but recoverable | Log, continue |
+| **INFO** | Notable event (not an error) | Log for audit |
 
 ---
 
@@ -135,13 +142,13 @@ All error codes used across the system. Each code identifies the source layer, c
 
 | Condition | Display | Trigger | Clear |
 |-----------|---------|---------|-------|
-| Data timeout (live session) | All 25 units → BLUE (flap 5) | ESP_103: no data 5 min in race/quali | New data received from host |
-| Slave error (single row) | Affected row flashes briefly | ESP_201: motor stall | After successful re-home |
-| No errors | Normal display | — | — |
+| Data timeout (live session) | All 25 units → BLUE (flap 5) | ESP_504 | New data received |
+| Motor stall (single row) | Affected row flashes briefly | ESP_511 | After successful re-home |
+| Normal operation | No indicator | — | — |
 
 ---
 
-## Error Logging Format
+## Log Format
 
 ### ESP32 (Serial + WebSocket to host)
 
@@ -151,9 +158,9 @@ All error codes used across the system. Each code identifies the source layer, c
 
 Example:
 ```
-[ERROR] [ESP_201] [1234567] Motor stall detected {row:2, col:3}
-[WARN]  [ESP_102] [1235000] No heartbeat from host for 30s
-[INFO]  [ESP_003] [1240000] WiFi reconnected {ip:192.168.1.50}
+[ERROR] [ESP_511] [1234567] Motor stall detected {row:2, col:3}
+[WARN]  [ESP_503] [1235000] No heartbeat from host for 30s
+[INFO]  [ESP_201] [1240000] WiFi reconnected {ip:192.168.1.50}
 ```
 
 ### Host (Python logging)
@@ -164,9 +171,9 @@ Example:
 
 Example:
 ```
-[ERROR] [HOST_101] [2024-03-15T14:30:22] ESP32 WebSocket disconnected {ip:192.168.1.50}
-[WARN]  [HOST_203] [2024-03-15T14:35:22] No new F1 data for 60s {source:openf1}
-[INFO]  [HOST_100] [2024-03-15T14:36:00] Reconnected to ESP32
+[ERROR] [HOST_502] [2024-03-15T14:30:22] ESP32 WebSocket disconnected {ip:192.168.1.50}
+[WARN]  [HOST_512] [2024-03-15T14:35:22] No new F1 data for 60s {source:openf1}
+[INFO]  [HOST_200] [2024-03-15T14:36:00] Connected to ESP32
 ```
 
 ---
@@ -174,14 +181,14 @@ Example:
 ## Error Flow
 
 ```
-Pico detects stall → reports STATUS_ERROR on next I2C read
+Pico detects stall → STATUS_ERROR on next I2C read → reports PICO_500
     ↓
-ESP32 reads status → logs ESP_201 → sends error event to host
+ESP32 reads status → logs ESP_511 → sends error event to host
     ↓
-Host receives error → logs with HOST layer context → displays in dashboard
+Host receives error → logs HOST layer context → displays in dashboard
     ↓
 ESP32 attempts recovery (re-home affected motor)
     ↓
-If recovery succeeds → clear error, resume normal operation
-If recovery fails → escalate (log persistent error, may need manual intervention)
+Success → PICO_200 reported → ESP_204 logged → clear error
+Failure → persistent error → manual intervention needed
 ```

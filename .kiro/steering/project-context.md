@@ -40,7 +40,7 @@ Host (Python, PC/Pi) ──WebSocket──→ ESP32 Master ──I2C──→ 5�
 ## Conventions
 
 - **No use of the word "slave"** — use "row controller" or "peripheral" (I2C context).
-- **Error codes follow pattern** `[LAYER]_[NUMBER]`: ESP_001, PICO_100, HOST_200.
+- **Error codes follow HTTP-style pattern** `[LAYER]_[CODE]`: 2xx = success/info, 4xx = logic errors, 5xx = system failures. E.g. ESP_504, PICO_500, HOST_501.
 - **File organization**: Host = Python modules. Firmware = Arduino .ino + .h header files per concern.
 - **JSON configs** (flap_config.json, color_config.json) are the source of truth for flap mappings. Firmware has a compiled-in copy for speed, but these JSON files are canonical.
 - **Comments in pseudocode files** describe intent and logic. Real implementation replaces the comments.
