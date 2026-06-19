@@ -228,6 +228,14 @@ F1 Tower/
 ├── display_modes_v2.md             ← Display mode details (5×5)
 ├── ideas.md                        ← Feature ideas and future plans
 │
+├── simulator/                      ← VISUAL SIMULATOR (Python + Pygame)
+│   ├── main.py                     ← Entry point: Pygame window + WebSocket server
+│   ├── board_state.py              ← Board state, transitions, command processing
+│   ├── flap_renderer.py            ← Draw individual flap modules (colors, text, flip anim)
+│   ├── ws_server.py                ← WebSocket server (same protocol as ESP32)
+│   ├── test_commands.py            ← Send test commands to simulator
+│   └── requirements.txt            ← pygame, websockets
+│
 ├── host/                           ← HOST APPLICATION (Python, runs on PC/Pi)
 │   ├── main.py                     ← Entry point: boot, connect, run loop
 │   ├── config.py                   ← Load/save settings (ESP32 IP, mode prefs, scroll)
