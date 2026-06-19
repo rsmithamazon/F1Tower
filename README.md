@@ -235,6 +235,23 @@ F1 Tower/
 │   ├── ws_server.py                ← WebSocket server (same protocol as ESP32)
 │   ├── test_commands.py            ← Send test commands to simulator
 │   └── requirements.txt            ← pygame, websockets
+
+## Running the Simulator
+
+```
+cd simulator
+pip install -r requirements.txt
+python main.py
+```
+
+Keyboard shortcuts: R = red flag, G = green, B = black, W = white, T = test standings, Esc = quit.
+
+In a second terminal, send commands via WebSocket:
+```
+python test_commands.py
+```
+
+The simulator accepts the same WebSocket protocol on `ws://localhost:81` that the real ESP32 will — so the host app works against either without code changes.
 │
 ├── host/                           ← HOST APPLICATION (Python, runs on PC/Pi)
 │   ├── main.py                     ← Entry point: boot, connect, run loop
