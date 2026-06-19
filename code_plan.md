@@ -716,7 +716,7 @@ class Scheduler:
         remove task by id
 ```
 
-### i2c_master.h — I2C Communication to Slaves
+### i2c_master.h — I2C Communication to Row Controllers
 
 ```pseudo
 class I2CMaster:
@@ -725,15 +725,15 @@ class I2CMaster:
         Wire.setClock(clock_speed)
     
     function move_module(row: int, col: int, target_position: int):
-        (slave_addr, motor_index) = MODULE_MAP[row][col]
-        send_command(slave_addr, CMD_MOVE, motor_index, target_position)
+        (row_addr, motor_index) = MODULE_MAP[row][col]
+        send_command(row_addr, CMD_MOVE, motor_index, target_position)
     
     function home_module(row: int, col: int):
-        (slave_addr, motor_index) = MODULE_MAP[row][col]
-        send_command(slave_addr, CMD_HOME, motor_index, 0)
+        (row_addr, motor_index) = MODULE_MAP[row][col]
+        send_command(row_addr, CMD_HOME, motor_index, 0)
     
     function home_all():
-        for addr in SLAVE_ADDRESSES:
+        for addr in ROW_ADDRESSES:
             send_command(addr, CMD_HOME_ALL, 0, 0)
     
     function send_command(addr: byte, cmd: byte, motor: byte, value: byte):
@@ -750,19 +750,19 @@ class I2CMaster:
 // I2C Command bytes
 CMD_MOVE = 0x01        // move motor X to position Y
 CMD_HOME = 0x02        // home motor X
-CMD_HOME_ALL = 0x03    // home all motors on this slave
+CMD_HOME_ALL = 0x03    // home all motors on this row controller
 CMD_STOP = 0x04        // emergency stop
 CMD_STATUS = 0x05      // request status byte
 ```
 
 ---
 
-## 3. SLAVE — Raspberry Pi Pico (Motor Driver)
+## 3. ROW CONTROLLER — Raspberry Pi Pico (Motor Driver)
 
 Each Pico drives 5 stepper motors (one full row). It listens for I2C commands and moves motors using PIO for hardware-precise timing.
 
 ```
-slave/
+row_controller/
 ├── platformio.ini
 ├── src/
 │   ├── main.cpp
@@ -777,7 +777,7 @@ slave/
 ```pseudo
 function setup():
     set_i2c_address(MY_ADDRESS)      // set via jumper/solder bridge
-    init_i2c_slave(on_receive, on_request)
+    init_i2c_peripheral(on_receive, on_request)
     init_motors()
     init_hall_sensors()
 
@@ -792,8 +792,8 @@ function loop():
 
 ```pseudo
 constants:
-    MY_ADDRESS = 0x10              // unique per slave (set by jumper)
-    NUM_MOTORS = 5                 // how many this slave controls
+    MY_ADDRESS = 0x10              // unique per row controller (set by jumper)
+    NUM_MOTORS = 5                 // how many this row controller drives
     FLAPS_PER_DRUM = 45
     STEPS_PER_FLAP = 64           // 28BYJ-48 steps between flaps (2048 steps / 45 ≈ 45.5)
     
@@ -933,7 +933,7 @@ class HomingController:
 ```json
 {"status": "ready"}
 {"status": "busy", "transition": "cascade_down", "progress": 60}
-{"status": "error", "message": "slave 0x12 not responding"}
+{"status": "error", "message": "row controller 0x12 not responding"}
 {"status": "homing", "progress": 80}
 ```
 
