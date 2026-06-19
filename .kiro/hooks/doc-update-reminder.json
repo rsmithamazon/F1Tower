@@ -1,0 +1,14 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "Documentation Update Reminder",
+      "trigger": "PostFileSave",
+      "matcher": "\\.(h|ino|py|json)$",
+      "action": {
+        "type": "agent",
+        "prompt": "A code file was just saved. Check if the change affects any documented behavior, architecture decisions, or interfaces described in README.md, error_codes.md, or other .md files. If documentation needs updating to stay in sync, mention it briefly. Don't block work — just flag it."
+      }
+    }
+  ]
+}

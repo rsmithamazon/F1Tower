@@ -160,17 +160,36 @@ See `transitions.md` for full configuration options.
 ## Architecture
 
 ```
-[Master ESP32/Nano] ──I2C──→ [Nano 1] → 4–5 motors
-                              [Nano 2] → 4–5 motors
-                              ...
-                              [Nano 6] → 4–5 motors
+[Host PC/Pi]                          [Hardware]
+ Python app ──WebSocket──→ [ESP32 Master] ──I2C──→ [Pico Row 0] → 5 motors
+ (F1 data,                   (transitions,          [Pico Row 1] → 5 motors
+  display logic,              flap lookup,           [Pico Row 2] → 5 motors
+  mode management)            timing, state)         [Pico Row 3] → 5 motors
+                                                     [Pico Row 4] → 5 motors
 ```
 
-- **~6 Arduino Nanos** (25 modules ÷ 4–5 each)
-- **ULN2003 driver boards** (off-the-shelf)
-- **28BYJ-48 stepper motors**
-- **Hall effect sensors** for homing
-- **5V 10A PSU**
+### Three-Layer System
+
+| Layer | Hardware | Role |
+|-------|----------|------|
+| **Host** | PC or Raspberry Pi | Ingests F1 data, decides what to display, sends commands |
+| **Master** | ESP32 | Receives commands via WiFi (WebSocket), manages transitions, sends I2C to row controllers |
+| **Row Controllers** | 5× Raspberry Pi Pico (one per row) | Drives 5 stepper motors each via PIO, handles homing, reports position |
+
+### Communication
+
+| Link | Protocol | Direction |
+|------|----------|-----------|
+| Host → ESP32 | WebSocket (WiFi) | Bidirectional (commands down, status/errors up) |
+| ESP32 → Picos | I2C (400kHz) | Master writes commands, reads status/positions |
+
+### Hardware Per Row
+
+- **1× Raspberry Pi Pico** (RP2040) — PIO state machines for jitter-free stepping
+- **5× ULN2003 driver boards** (off-the-shelf)
+- **5× 28BYJ-48 stepper motors**
+- **5× Hall effect sensors** for homing (magnet at flap 0/black)
+- **5V 10A PSU** (shared)
 
 ## Performance
 
@@ -185,30 +204,62 @@ See `transitions.md` for full configuration options.
 
 | Item | Qty | Est. Cost |
 |------|-----|-----------|
-| Arduino Nano clones | 6–7 | $18 |
+| ESP32 DevKit | 1 | $6 |
+| Raspberry Pi Pico | 5 | $20 |
 | ULN2003 + 28BYJ-48 combos | 25 | $38 |
 | Hall effect sensors + magnets | 25 | $12 |
 | 5V 10A PSU | 1 | $12 |
-| ESP-01 WiFi module | 1 | $3 |
 | 3D printer filament | ~1.5kg | $30 |
 | Flap material (cardstock/PVC) | 1,125 flaps | $20 |
-| Wiring, connectors | — | $15 |
-| **Total** | | **~$150** |
+| Wiring, connectors, I2C bus | — | $15 |
+| **Total** | | **~$155** |
 
 ## File Structure
 
 ```
 F1 Tower/
-├── README.md                  ← You are here
-├── flap_config.json           ← Flap position mapping per drum (firmware lookup)
-├── color_config.json          ← Color definitions (hex, indices, teams, tires, flags)
-├── flap_allocation_v3.md      ← Flap allocation design rationale
-├── end_states_final.md        ← All 22 end states + power on/off sequences
-├── transitions.md             ← All transition styles + configurable settings
-├── display_modes_v2.md        ← Display mode details (5×5)
-├── ideas.md                   ← Feature ideas and future plans
+├── README.md                       ← You are here
+├── error_codes.md                  ← Error code reference (all layers)
+├── flap_config.json                ← Flap position mapping per drum (firmware lookup)
+├── color_config.json               ← Color definitions (hex, teams, tires, flags)
+├── flap_allocation_v3.md           ← Flap allocation design rationale
+├── end_states_final.md             ← All 22 end states + power on/off sequences
+├── transitions.md                  ← Transition styles + configurable settings
+├── display_modes_v2.md             ← Display mode details (5×5)
+├── ideas.md                        ← Feature ideas and future plans
+│
+├── host/                           ← HOST APPLICATION (Python, runs on PC/Pi)
+│   ├── main.py                     ← Entry point: boot, connect, run loop
+│   ├── config.py                   ← Load/save settings (ESP32 IP, mode prefs, scroll)
+│   ├── connection.py               ← WebSocket client (connect, send, heartbeat, reconnect)
+│   ├── f1_data.py                  ← F1 data ingestion (API/mock/replay)
+│   ├── display_engine.py           ← Display logic (mode switching, page scroll, events)
+│   ├── commands.py                 ← Command builders (display, startup, shutdown, etc.)
+│   └── logger.py                   ← Logging with error codes
+│
+├── firmware/
+│   ├── master/                     ← ESP32 MASTER FIRMWARE (Arduino/C++)
+│   │   ├── master.ino              ← Entry point: setup + loop
+│   │   ├── wifi_manager.h          ← WiFi connect/reconnect
+│   │   ├── websocket_server.h      ← WebSocket server (receive commands, send status)
+│   │   ├── i2c_master.h            ← I2C bus master (send targets, read status from Picos)
+│   │   ├── display_state.h         ← Track 5×5 board state + NVS persistence
+│   │   ├── transition_engine.h     ← Transition state machine (cascade, car, rainbow, etc.)
+│   │   ├── flap_lookup.h           ← Content → flap position conversion
+│   │   ├── config.h                ← Settings struct + NVS load/save
+│   │   ├── error_handler.h         ← Error detection, logging, visual error states
+│   │   └── startup.h               ← Boot sequence (home, lights out animation, shutdown)
+│   │
+│   └── row_controller/             ← PICO ROW CONTROLLER FIRMWARE (Arduino/C++ on RP2040)
+│       ├── row_controller.ino      ← Entry point: setup + loop
+│       ├── i2c_peripheral.h        ← I2C peripheral (receive commands, respond to reads)
+│       ├── pio_stepper.h           ← PIO hardware stepper control (zero-jitter stepping)
+│       ├── motor_driver.h          ← High-level motor management (move, animate, stall detect)
+│       ├── homing.h                ← Hall sensor homing sequence
+│       └── position_tracker.h      ← Persistent position storage + status reporting
+│
 └── Archive/
-    ├── end_states.md          ← Earlier end states (superseded)
+    ├── end_states.md               ← Earlier end states (superseded)
     └── end_states_and_sequences.md ← Earlier sequences (superseded)
 ```
 
@@ -216,8 +267,46 @@ F1 Tower/
 
 | File | Purpose |
 |------|---------|
-| `flap_config.json` | Position-to-content mapping for all 3 drum types. Used by firmware to look up which flap position to target for any given content (color, number, letter, logo, animation frame). Positions 0–17 are aligned across all columns. |
+| `flap_config.json` | Position-to-content mapping for all 3 drum types. Used by firmware to look up which flap position to target for any given content. Positions 0–17 aligned across all columns. |
 | `color_config.json` | Color definitions with hex values, text contrast colors, team associations, and flag/tire/sector usage. |
+| `error_codes.md` | Full error code reference across all 3 layers. Codes, descriptions, visual indicators, and recovery actions. |
+
+## Command Protocol (Host → ESP32)
+
+Commands are JSON over WebSocket. Every display command follows this format:
+
+```json
+{
+  "cmd": "display",
+  "mode": "standings",
+  "endState": "driver_names",
+  "transition": "cascade_down",
+  "data": {
+    "rows": [
+      {"pos": "1", "team": "ferrari",  "text": "NOR"},
+      {"pos": "2", "team": "mclaren",  "text": "PIA"},
+      {"pos": "3", "team": "redbull",  "text": "VER"},
+      {"pos": "4", "team": "mercedes", "text": "HAM"},
+      {"pos": "5", "team": "williams", "text": "ALB"}
+    ]
+  }
+}
+```
+
+Other commands: `startup`, `shutdown`, `heartbeat`, `query_status`, `set` (config change).
+
+## Startup Sequence
+
+```
+1. ESP32 boots → load config from NVS
+2. Connect WiFi → start WebSocket server
+3. Check homeOnStartup toggle:
+   - ON: home all Picos (3-4 sec)
+   - OFF: check stored positions. If all at black → skip home. Else → home.
+4. All motors confirmed at black (flap 0)
+5. Lights-out animation: red row-by-row → pause → all white
+6. Transition to first display mode
+```
 
 ## Inspirations
 
