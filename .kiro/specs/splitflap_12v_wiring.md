@@ -226,4 +226,59 @@ Motor 5: GP26, GP27, GP28, GP22  → ULN2003 #5 IN1–IN4
                     └───── [COMMON GND] ─┘
 ```
 
-One plug. One ground. Done.
+# Split Flap F1 — Order Now (Committed Parts)
+
+## Order List
+
+| # | Part | Qty | ~Cost | Search |
+|---|------|-----|-------|---------------|
+| 1 | Raspberry Pi Pico | 5 | $20 | [Amazon](https://www.amazon.com/s?k=Raspberry+Pi+Pico) |
+| 2 | Pico screw terminal breakout board | 5 | $25 | [Amazon](https://www.amazon.com/s?k=Raspberry+Pi+Pico+screw+terminal+breakout+board) |
+| 3 | ESP32 dev board (USB-C) | 1 | $5 | [Amazon](https://www.amazon.com/s?k=ESP32+dev+board+USB-C) |
+| 4 | ESP32 screw terminal breakout board | 1 | $8 | [Amazon](https://www.amazon.com/s?k=ESP32+screw+terminal+breakout+board) |
+| 5 | 28BYJ-48 **12V** + ULN2003 combo | 30 | $60 | [AliExpress SeasBoat "12V"](https://www.aliexpress.us/item/2255800976774653.html) — 6× qty 5 |
+| 6 | A3144 Hall effect sensor | 30 | $8 | [Amazon](https://www.amazon.com/s?k=A3144+hall+effect+sensor) |
+| 7 | 12V 5A DC power supply (barrel jack) | 1 | $12 | [Amazon](https://www.amazon.com/s?k=12V+5A+DC+power+supply+barrel+jack) |
+| 8 | Barrel jack to screw terminal adapter | 1 | $2 | [Amazon](https://www.amazon.com/s?k=5.5x2.1+DC+barrel+jack+screw+terminal+adapter) |
+| 9 | LM2596 buck converter (12V→5V) | 1 | $4 | [Amazon](https://www.amazon.com/s?k=LM2596+buck+converter+module) |
+| 10 | Digital multimeter | 1 | $15 | [Amazon](https://www.amazon.com/s?k=digital+multimeter) |
+| 11 | 18 AWG silicone wire (red + black) | 2m each | $4 | [Amazon](https://www.amazon.com/s?k=18+AWG+silicone+wire+red+black) |
+| 12 | 22 AWG solid hookup wire (assorted) | 5m | $3 | [Amazon](https://www.amazon.com/s?k=22+AWG+solid+hookup+wire+kit) |
+| 13 | 4.7KΩ resistors | 10 pack | $1 | [Amazon](https://www.amazon.com/s?k=4.7K+ohm+resistor) |
+
+## Optional (decide later)
+
+| # | Part | Qty | ~Cost | Notes |
+|---|------|-----|-------|-------|
+| 14 | Neodymium magnets 3×1mm | 50 pack | $3 | For hall sensor — may already have |
+| 15 | Wago 221 lever connectors (5-port) | 10 pack | $8 | Cleaner bus splits |
+
+---
+
+## Total: ~$167
+
+## Not ordering yet (decide after testing)
+
+- Flap material (cardstock vs PVC)
+- Extra motors beyond 30
+- Final frame filament
+
+---
+
+## Google Searches (copy-paste)
+
+```
+Raspberry Pi Pico
+Raspberry Pi Pico screw terminal breakout board
+ESP32 dev board USB-C
+ESP32 screw terminal breakout board
+28BYJ-48 12V ULN2003 5 pack
+A3144 hall effect sensor 10 pack
+12V 5A DC power supply barrel jack
+DC 5.5x2.1 barrel jack screw terminal adapter
+LM2596 buck converter module
+digital multimeter
+18 AWG silicone wire red black
+22 AWG solid hookup wire assorted
+4.7K ohm resistor pack
+```
