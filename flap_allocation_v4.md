@@ -109,10 +109,10 @@
 | 28 | ⛅ Cloud | #808080 | — | icon | Weather: overcast |
 | 29 | 🌧 Rain | #1E41FF | — | icon | Weather: rain |
 | 30 | 💨 Wind | — | — | icon | Weather: wind row |
-| 31 | Podium 1st | #FFD700 | #000000 | text | Gold BG, black "1" |
-| 32 | Podium 2nd | #C0C0C0 | #000000 | text | Silver BG, black "2" |
-| 33 | Car frame 1 | — | — | graphic | Animation start |
-| 34 | Car frame 2 | — | — | graphic | |
+| 31 | Thunder | - | — | icon | Weather: wind row |
+| 32 | Snow | - | — | icon | Weather: wind row |
+| 33 | partly cloudy | - | — | icon | Weather: wind row |
+| 34 | Car frame 2 | — | — | graphic | Animation Start |
 | 35 | Car frame 3 | — | — | graphic | |
 | 36 | Car frame 4 | — | — | graphic | |
 | 37 | Car frame 5 | — | — | graphic | |
@@ -126,8 +126,7 @@
 | 45 | Car frame 13 | — | — | graphic | |
 | 46 | Car frame 14 | — | — | graphic | |
 | 47 | Car frame 15 | — | — | graphic | |
-| 48 | Car frame 16 | — | — | graphic | |
-| 49 | Car frame 17 | — | — | graphic | |
+| 49 | Car frame 16 | — | — | graphic | |
 | 50 | Checkered | B/W check | — | pattern | Shared all cols |
 | 51 | F1 Logo | — | Red+White | graphic | Shared all cols |
 
@@ -157,11 +156,11 @@
 | 15 | 7 | — | — | digit | |
 | 16 | 8 | — | — | digit | |
 | 17 | 9 | — | — | digit | |
-| 18 | Teal | #00D2BE | — | solid | Mercedes |
-| 19 | Pink | #FF87BC | — | solid | Alpine |
-| 20 | Light Blue | #005AFF | — | solid | Williams |
-| 21 | Maroon | #900000 | — | solid | Audi |
-| 22 | Gold | #C8A951 | — | solid | Cadillac |
+| 18 | TBD | — | — | Reserved |  |
+| 19 | TBD | — | — | Reserved |  |
+| 20 | TBD | — | — | Reserved |  |
+| 21 | TBD | — | — | Reserved |  |
+| 22 | TBD | — | — | Reserved |  |
 | 23 | Ferrari logo | #DC0000 | — | logo | |
 | 24 | McLaren logo | #FF8000 | — | logo | |
 | 25 | Mercedes logo | #00D2BE | #000000 | logo | Black logo on teal |
@@ -173,7 +172,7 @@
 | 31 | Racing Bulls logo | #A020F0 | — | logo | |
 | 32 | Audi logo | #900000 | — | logo | |
 | 33 | Cadillac logo | #C8A951 | #000000 | logo | Black logo on gold |
-| 34 | . | — | — | text | Period / decimal |
+| 34 | . | — | — | text | Period / Do we need? |
 | 35 | 🇲🇨 Monaco | — | — | flag | Country flag |
 | 36 | 🇮🇹 Italy | — | — | flag | Monza |
 | 37 | 🇬🇧 United Kingdom | — | — | flag | Silverstone |
@@ -184,11 +183,11 @@
 | 42 | 🇦🇪 UAE | — | — | flag | Abu Dhabi / Bahrain |
 | 43 | 🇦🇺 Australia | — | — | flag | Melbourne |
 | 44 | 🇳🇱 Netherlands | — | — | flag | Zandvoort |
-| 45 | TBD | — | — | — | Reserved |
-| 46 | TBD | — | — | — | Reserved |
-| 47 | TBD | — | — | — | Reserved |
-| 48 | TBD | — | — | — | Reserved |
-| 49 | TBD | — | — | — | Reserved |
+| 45 | Singapore | — | — | — | Reserved |
+| 46 | Qatar | — | — | — | Reserved |
+| 47 | UAE | — | — | — | Reserved |
+| 48 | Canada | — | — | — | Reserved |
+| 49 | Mexico | — | — | — | Reserved |
 | 50 | Checkered | B/W check | — | pattern | Shared all cols |
 | 51 | F1 Logo | — | Red+White | graphic | Shared all cols |
 
@@ -229,7 +228,7 @@
 | 42 | Y | — | — | letter | |
 | 43 | Z | — | — | letter | |
 | 44 | - | — | — | text | Dash |
-| 45 | . | — | — | text | Period |
+| 45 | . | — | — | text | Period (.01) |
 | 46 | : | — | — | text | Colon |
 | 47 | ° | — | — | text | Degree symbol |
 | 48 | % | — | — | text | Percent |
@@ -273,9 +272,9 @@
 | 41 | X | — | — | letter | |
 | 42 | Y | — | — | letter | |
 | 43 | Z | — | — | letter | |
-| 44 | - | — | — | text | Dash |
-| 45 | . | — | — | text | Period |
-| 46 | : | — | — | text | Colon |
+| 44 | . | — | — | text |  1.2 |
+| 45 | TBD | — | — | text |  |
+| 46 | TBD | — | — | text |  |
 | 47 | ° | — | — | text | Degree symbol |
 | 48 | % | — | — | text | Percent |
 | 49 | + | — | — | text | Plus |
@@ -318,12 +317,12 @@
 | 41 | X | — | — | letter | |
 | 42 | Y | — | — | letter | |
 | 43 | Z | — | — | letter | |
-| 44 | - | — | — | text | Dash |
-| 45 | . | — | — | text | Period |
-| 46 | : | — | — | text | Colon |
+| 44 | TBD | — | — | text |  |
+| 45 | TBD | — | — | text |  |
+| 46 | TBD | — | — | text |  |
 | 47 | ° | — | — | text | Degree symbol |
 | 48 | % | — | — | text | Percent |
-| 49 | mph | — | — | small text | Wind speed unit label |
+| 49 | mph | — | — | small text | Wind speed unit label, vertical |
 | 50 | Checkered | B/W check | — | pattern | Shared all cols |
 | 51 | F1 Logo | — | Red+White | graphic | Shared all cols |
 
