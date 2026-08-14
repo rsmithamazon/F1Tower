@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Split Flap — Artwork Designer</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: #1a1a1e;
+            color: #e0e0e0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        h1 { font-size: 1.4rem; margin-bottom: 8px; color: #fff; }
+        .subtitle { font-size: 0.85rem; color: #888; margin-bottom: 20px; }
+
+        .controls {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .controls label { font-size: 0.85rem; color: #aaa; }
+
+        .controls input[type="file"] {
+            background: #2a2a30; border: 1px solid #444; border-radius: 6px;
+            padding: 6px 12px; color: #e0e0e0; cursor: pointer;
+        }
+
+        .controls input[type="range"] { width: 160px; accent-color: #DC0000; }
+
+        .controls input[type="color"] {
+            width: 36px; height: 30px; border: 1px solid #444; border-radius: 4px;
+            background: #2a2a30; cursor: pointer; padding: 2px;
+        }
+
+        .controls button {
+            background: #DC0000; border: none; border-radius: 6px;
+            padding: 8px 16px; color: #fff; font-weight: bold; cursor: pointer; font-size: 0.85rem;
+        }
+        .controls button:hover { background: #ff2020; }
+        .controls button.secondary { background: #333; border: 1px solid #555; }
+        .controls button.secondary:hover { background: #444; }
+
+        .nudge-btn {
+            background: #2a2a30; border: 1px solid #555; border-radius: 4px;
+            padding: 4px 10px; color: #e0e0e0; cursor: pointer; font-size: 1rem;
+            min-width: 32px; text-align: center;
+        }
+        .nudge-btn:hover { background: #444; }
+        .nudge-btn:active { background: #555; }
+
+        .scale-display { font-size: 0.85rem; color: #DC0000; min-width: 45px; text-align: center; }
+
+        .canvas-container {
+            position: relative; border: 2px solid #333; border-radius: 8px;
+            overflow: hidden; cursor: grab; background: #111;
+        }
+        .canvas-container:active { cursor: grabbing; }
+
+        canvas { display: block; }
+
+        .dimensions-info { margin-top: 12px; font-size: 0.8rem; color: #666; text-align: center; }
+
+        .flap-preview {
+            margin-top: 20px; display: flex; gap: 20px;
+            align-items: flex-start; flex-wrap: wrap; justify-content: center;
+        }
+
+        .preview-box { text-align: center; }
+        .preview-box h3 { font-size: 0.85rem; color: #888; margin-bottom: 8px; }
+        .preview-canvas { border: 1px solid #444; border-radius: 4px; background: #000; }
+
+        .split-preview { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+        .split-gap { height: 3px; width: 100%; background: #1a1a1e; }
+
+        .instructions {
+            margin-top: 16px; font-size: 0.8rem; color: #666;
+            text-align: center; max-width: 600px; line-height: 1.5;
+        }
+
+        .nudge-group {
+            display: flex; gap: 4px; align-items: center;
+        }
+    </style>
+</head>
+<body>
+    <h1>Split Flap Artwork Designer</h1>
+    <p class="subtitle">Load an image, scale and position it within the flap boundary, then export.</p>
+
+    <div class="controls">
+        <input type="file" id="imageInput" accept="image/*">
+        <label>BG Fill:</label>
+        <input type="color" id="bgColor" value="#000000" title="Background fill color">
+        <input type="text" id="bgHex" value="#000000" maxlength="7" style="width:75px; background:#2a2a30; border:1px solid #444; border-radius:4px; padding:4px 8px; color:#e0e0e0; font-family:monospace;">
+        <button class="nudge-btn" id="eyedropperBtn" title="Pick color from image">🎨</button>
+        <button class="secondary" id="centerBtn">Center</button>
+        <button class="secondary" id="resetBtn">Reset</button>
+        <button id="exportBtn">Export Crop</button>
+    </div>
+
+    <div class="controls">
+        <label>Scale:</label>
+        <button class="nudge-btn" id="zoomOut">-</button>
+        <input type="range" id="scaleSlider" min="10" max="500" value="100">
+        <button class="nudge-btn" id="zoomIn">+</button>
+        <span class="scale-display" id="scaleDisplay">100%</span>
+    </div>
+
+    <div class="controls">
+        <label>Position:</label>
+        <div class="nudge-group">
+            <button class="nudge-btn" id="nudgeLeft" title="Move left 1px">&#9664;</button>
+            <button class="nudge-btn" id="nudgeUp" title="Move up 1px">&#9650;</button>
+            <button class="nudge-btn" id="nudgeDown" title="Move down 1px">&#9660;</button>
+            <button class="nudge-btn" id="nudgeRight" title="Move right 1px">&#9654;</button>
+        </div>
+        <label>Flap W:</label>
+        <input type="number" id="flapWidth" value="430" min="50" max="2000" style="width:65px; background:#2a2a30; border:1px solid #444; border-radius:4px; padding:4px 8px; color:#e0e0e0;">
+        <label>H:</label>
+        <input type="number" id="flapHeight" value="700" min="50" max="2000" style="width:65px; background:#2a2a30; border:1px solid #444; border-radius:4px; padding:4px 8px; color:#e0e0e0;">
+        <label>Gap:</label>
+        <input type="number" id="splitGap" value="4" min="0" max="20" style="width:50px; background:#2a2a30; border:1px solid #444; border-radius:4px; padding:4px 8px; color:#e0e0e0;">
+    </div>
+
+    <div class="canvas-container" id="canvasContainer">
+        <canvas id="mainCanvas" width="600" height="400"></canvas>
+    </div>
+
+    <p class="dimensions-info" id="dimensionsInfo">Load an image to begin</p>
+
+    <div class="flap-preview">
+        <div class="preview-box">
+            <h3>Cropped Result</h3>
+            <canvas class="preview-canvas" id="previewCanvas" width="200" height="100"></canvas>
+        </div>
+        <div class="preview-box">
+            <h3>Split Flap View</h3>
+            <div class="split-preview">
+                <canvas class="preview-canvas" id="splitTop" width="200" height="48"></canvas>
+                <div class="split-gap"></div>
+                <canvas class="preview-canvas" id="splitBottom" width="200" height="48"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <p class="instructions">
+        <b>Drag</b> to pan | <b>Scroll wheel</b> or <b>+/-</b> buttons to zoom |
+        <b>Arrow buttons</b> for 1px nudge | <b>Arrow keys</b> also work<br>
+        <b>BG Fill</b> color picker fills empty space around the image |
+        <b>Center</b> snaps image to middle | <b>Export</b> saves the cropped flap as PNG
+    </p>
+
+    <script>
+        const canvas = document.getElementById('mainCanvas');
+        const ctx = canvas.getContext('2d');
+        const scaleSlider = document.getElementById('scaleSlider');
+        const scaleDisplay = document.getElementById('scaleDisplay');
+        const imageInput = document.getElementById('imageInput');
+        const exportBtn = document.getElementById('exportBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const centerBtn = document.getElementById('centerBtn');
+        const bgColorInput = document.getElementById('bgColor');
+        const flapWidthInput = document.getElementById('flapWidth');
+        const flapHeightInput = document.getElementById('flapHeight');
+        const splitGapInput = document.getElementById('splitGap');
+        const dimensionsInfo = document.getElementById('dimensionsInfo');
+        const previewCanvas = document.getElementById('previewCanvas');
+        const splitTop = document.getElementById('splitTop');
+        const splitBottom = document.getElementById('splitBottom');
+
+        let img = null;
+        let imgX = 0;
+        let imgY = 0;
+        let scale = 1.0;
+        let isDragging = false;
+        let dragStartX = 0;
+        let dragStartY = 0;
+        let imgStartX = 0;
+        let imgStartY = 0;
+
+        const CANVAS_PADDING = 60;
+        const NUDGE_PX = 1;
+        const ZOOM_STEP = 5;
+
+        function getFlapWidth() { return parseInt(flapWidthInput.value) || 430; }
+        function getFlapHeight() { return parseInt(flapHeightInput.value) || 700; }
+        function getSplitGap() { return parseInt(splitGapInput.value) || 4; }
+        function getBgColor() { return bgColorInput.value; }
+
+        function updateCanvasSize() {
+            const fw = getFlapWidth();
+            const fh = getFlapHeight();
+            canvas.width = fw + CANVAS_PADDING * 2;
+            canvas.height = fh + CANVAS_PADDING * 2;
+            draw();
+        }
+
+        function draw() {
+            const fw = getFlapWidth();
+            const fh = getFlapHeight();
+            const gap = getSplitGap();
+            const bgColor = getBgColor();
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Outer area (dark)
+            ctx.fillStyle = '#111';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Flap area background (user-selected fill color)
+            ctx.fillStyle = bgColor;
+            ctx.fillRect(CANVAS_PADDING, CANVAS_PADDING, fw, fh);
+
+            // Draw image if loaded
+            if (img) {
+                const drawW = img.width * scale;
+                const drawH = img.height * scale;
+                const drawX = CANVAS_PADDING + imgX;
+                const drawY = CANVAS_PADDING + imgY;
+                ctx.drawImage(img, drawX, drawY, drawW, drawH);
+            }
+
+            // Darken outside the flap area
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+            ctx.fillRect(0, 0, canvas.width, CANVAS_PADDING);
+            ctx.fillRect(0, CANVAS_PADDING + fh, canvas.width, CANVAS_PADDING);
+            ctx.fillRect(0, CANVAS_PADDING, CANVAS_PADDING, fh);
+            ctx.fillRect(CANVAS_PADDING + fw, CANVAS_PADDING, CANVAS_PADDING, fh);
+
+            // Flap boundary (red outline)
+            ctx.strokeStyle = '#DC0000';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(CANVAS_PADDING, CANVAS_PADDING, fw, fh);
+
+            // Split line (middle of flap)
+            if (gap > 0) {
+                const splitY = CANVAS_PADDING + (fh / 2) - (gap / 2);
+                ctx.fillStyle = '#1a1a1e';
+                ctx.fillRect(CANVAS_PADDING, splitY, fw, gap);
+                ctx.strokeStyle = '#555';
+                ctx.lineWidth = 1;
+                ctx.setLineDash([4, 4]);
+                ctx.beginPath();
+                ctx.moveTo(CANVAS_PADDING, splitY);
+                ctx.lineTo(CANVAS_PADDING + fw, splitY);
+                ctx.moveTo(CANVAS_PADDING, splitY + gap);
+                ctx.lineTo(CANVAS_PADDING + fw, splitY + gap);
+                ctx.stroke();
+                ctx.setLineDash([]);
+            }
+
+            // Corner markers
+            ctx.strokeStyle = '#DC0000';
+            ctx.lineWidth = 3;
+            const markLen = 12;
+            const corners = [
+                [CANVAS_PADDING, CANVAS_PADDING],
+                [CANVAS_PADDING + fw, CANVAS_PADDING],
+                [CANVAS_PADDING, CANVAS_PADDING + fh],
+                [CANVAS_PADDING + fw, CANVAS_PADDING + fh]
+            ];
+            corners.forEach(([cx, cy], i) => {
+                const dx = (i % 2 === 0) ? 1 : -1;
+                const dy = (i < 2) ? 1 : -1;
+                ctx.beginPath();
+                ctx.moveTo(cx + dx * markLen, cy);
+                ctx.lineTo(cx, cy);
+                ctx.lineTo(cx, cy + dy * markLen);
+                ctx.stroke();
+            });
+
+            updatePreview();
+        }
+
+        function updatePreview() {
+            const fw = getFlapWidth();
+            const fh = getFlapHeight();
+            const gap = getSplitGap();
+            const bgColor = getBgColor();
+
+            // Cropped preview
+            previewCanvas.width = fw;
+            previewCanvas.height = fh;
+            const pCtx = previewCanvas.getContext('2d');
+            pCtx.fillStyle = bgColor;
+            pCtx.fillRect(0, 0, fw, fh);
+            if (img) {
+                pCtx.drawImage(img, imgX, imgY, img.width * scale, img.height * scale);
+            }
+
+            // Split preview
+            const halfH = Math.floor((fh - gap) / 2);
+            splitTop.width = fw;
+            splitTop.height = halfH;
+            splitBottom.width = fw;
+            splitBottom.height = halfH;
+
+            const topCtx = splitTop.getContext('2d');
+            const botCtx = splitBottom.getContext('2d');
+
+            topCtx.fillStyle = bgColor;
+            topCtx.fillRect(0, 0, fw, halfH);
+            botCtx.fillStyle = bgColor;
+            botCtx.fillRect(0, 0, fw, halfH);
+
+            if (img) {
+                const drawW = img.width * scale;
+                const drawH = img.height * scale;
+                topCtx.drawImage(img, imgX, imgY, drawW, drawH);
+                botCtx.drawImage(img, imgX, imgY - halfH - gap, drawW, drawH);
+            }
+        }
+
+        // --- IMAGE LOADING ---
+        imageInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                img = new Image();
+                img.onload = () => {
+                    const fw = getFlapWidth();
+                    const fh = getFlapHeight();
+                    const scaleX = fw / img.width;
+                    const scaleY = fh / img.height;
+                    scale = Math.max(scaleX, scaleY);
+                    scaleSlider.value = Math.round(scale * 100);
+                    scaleDisplay.textContent = Math.round(scale * 100) + '%';
+                    centerImage();
+                    dimensionsInfo.textContent = `Image: ${img.width}x${img.height}px | Flap: ${fw}x${fh}px | Scale: ${Math.round(scale * 100)}%`;
+                    draw();
+                };
+                img.src = ev.target.result;
+            };
+            reader.readAsDataURL(file);
+        });
+
+        // --- CENTER ---
+        function centerImage() {
+            if (!img) return;
+            const fw = getFlapWidth();
+            const fh = getFlapHeight();
+            imgX = (fw - img.width * scale) / 2;
+            imgY = (fh - img.height * scale) / 2;
+        }
+
+        centerBtn.addEventListener('click', () => { centerImage(); draw(); });
+
+        // --- SCALE ---
+        function applyScale(newVal) {
+            const fw = getFlapWidth();
+            const fh = getFlapHeight();
+            const oldScale = scale;
+            newVal = Math.max(10, Math.min(500, newVal));
+            scaleSlider.value = newVal;
+            scale = newVal / 100;
+            scaleDisplay.textContent = Math.round(scale * 100) + '%';
+            // Scale from center of flap area
+            const centerX = fw / 2;
+            const centerY = fh / 2;
+            imgX = centerX - (centerX - imgX) * (scale / oldScale);
+            imgY = centerY - (centerY - imgY) * (scale / oldScale);
+            if (img) {
+                dimensionsInfo.textContent = `Image: ${img.width}x${img.height}px | Flap: ${fw}x${fh}px | Scale: ${Math.round(scale * 100)}%`;
+            }
+            draw();
+        }
+
+        scaleSlider.addEventListener('input', () => { applyScale(parseInt(scaleSlider.value)); });
+        document.getElementById('zoomIn').addEventListener('click', () => { applyScale(parseInt(scaleSlider.value) + ZOOM_STEP); });
+        document.getElementById('zoomOut').addEventListener('click', () => { applyScale(parseInt(scaleSlider.value) - ZOOM_STEP); });
+
+        // --- NUDGE BUTTONS ---
+        document.getElementById('nudgeLeft').addEventListener('click', () => { imgX -= NUDGE_PX; draw(); });
+        document.getElementById('nudgeRight').addEventListener('click', () => { imgX += NUDGE_PX; draw(); });
+        document.getElementById('nudgeUp').addEventListener('click', () => { imgY -= NUDGE_PX; draw(); });
+        document.getElementById('nudgeDown').addEventListener('click', () => { imgY += NUDGE_PX; draw(); });
+
+        // --- KEYBOARD CONTROLS ---
+        document.addEventListener('keydown', (e) => {
+            if (e.target.tagName === 'INPUT') return; // don't interfere with inputs
+            switch (e.key) {
+                case 'ArrowLeft':  imgX -= NUDGE_PX; draw(); e.preventDefault(); break;
+                case 'ArrowRight': imgX += NUDGE_PX; draw(); e.preventDefault(); break;
+                case 'ArrowUp':    imgY -= NUDGE_PX; draw(); e.preventDefault(); break;
+                case 'ArrowDown':  imgY += NUDGE_PX; draw(); e.preventDefault(); break;
+                case '+': case '=': applyScale(parseInt(scaleSlider.value) + ZOOM_STEP); e.preventDefault(); break;
+                case '-': case '_': applyScale(parseInt(scaleSlider.value) - ZOOM_STEP); e.preventDefault(); break;
+            }
+        });
+
+        // --- DRAG ---
+        canvas.addEventListener('mousedown', (e) => {
+            if (!img) return;
+            isDragging = true;
+            dragStartX = e.clientX;
+            dragStartY = e.clientY;
+            imgStartX = imgX;
+            imgStartY = imgY;
+        });
+        window.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            imgX = imgStartX + (e.clientX - dragStartX);
+            imgY = imgStartY + (e.clientY - dragStartY);
+            draw();
+        });
+        window.addEventListener('mouseup', () => { isDragging = false; });
+
+        // Mouse wheel zoom
+        canvas.addEventListener('wheel', (e) => {
+            if (!img) return;
+            e.preventDefault();
+            const delta = e.deltaY > 0 ? -ZOOM_STEP : ZOOM_STEP;
+            applyScale(parseInt(scaleSlider.value) + delta);
+        });
+
+        // --- BG COLOR ---
+        const bgHexInput = document.getElementById('bgHex');
+
+        bgColorInput.addEventListener('input', () => {
+            bgHexInput.value = bgColorInput.value;
+            draw();
+        });
+
+        bgHexInput.addEventListener('change', () => {
+            let val = bgHexInput.value.trim();
+            if (!val.startsWith('#')) val = '#' + val;
+            if (/^#[0-9a-fA-F]{6}$/.test(val)) {
+                bgColorInput.value = val;
+                bgHexInput.value = val;
+                draw();
+            } else {
+                bgHexInput.value = bgColorInput.value; // revert invalid
+            }
+        });
+
+        // --- EYEDROPPER (pick color from canvas) ---
+        let eyedropperMode = false;
+        const eyedropperBtn = document.getElementById('eyedropperBtn');
+
+        eyedropperBtn.addEventListener('click', () => {
+            // Try the native EyeDropper API first (Chrome/Edge)
+            if (window.EyeDropper) {
+                const dropper = new EyeDropper();
+                dropper.open().then(result => {
+                    bgColorInput.value = result.sRGBHex;
+                    bgHexInput.value = result.sRGBHex;
+                    draw();
+                }).catch(() => {});
+            } else {
+                // Fallback: click-on-canvas mode
+                eyedropperMode = !eyedropperMode;
+                canvas.style.cursor = eyedropperMode ? 'crosshair' : 'grab';
+                eyedropperBtn.style.background = eyedropperMode ? '#DC0000' : '#2a2a30';
+            }
+        });
+
+        canvas.addEventListener('click', (e) => {
+            if (!eyedropperMode) return;
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            const pixel = ctx.getImageData(x, y, 1, 1).data;
+            const hex = '#' + [pixel[0], pixel[1], pixel[2]].map(v => v.toString(16).padStart(2, '0')).join('');
+            bgColorInput.value = hex;
+            bgHexInput.value = hex;
+            eyedropperMode = false;
+            canvas.style.cursor = 'grab';
+            eyedropperBtn.style.background = '#2a2a30';
+            draw();
+        });
+
+        // --- DIMENSION INPUTS ---
+        flapWidthInput.addEventListener('change', updateCanvasSize);
+        flapHeightInput.addEventListener('change', updateCanvasSize);
+        splitGapInput.addEventListener('change', draw);
+
+        // --- RESET ---
+        resetBtn.addEventListener('click', () => {
+            if (!img) return;
+            const fw = getFlapWidth();
+            const fh = getFlapHeight();
+            const scaleX = fw / img.width;
+            const scaleY = fh / img.height;
+            scale = Math.max(scaleX, scaleY);
+            scaleSlider.value = Math.round(scale * 100);
+            scaleDisplay.textContent = Math.round(scale * 100) + '%';
+            centerImage();
+            draw();
+        });
+
+        // --- EXPORT ---
+        exportBtn.addEventListener('click', () => {
+            const fw = getFlapWidth();
+            const fh = getFlapHeight();
+            const bgColor = getBgColor();
+
+            const exportCanvas = document.createElement('canvas');
+            exportCanvas.width = fw;
+            exportCanvas.height = fh;
+            const eCtx = exportCanvas.getContext('2d');
+
+            eCtx.fillStyle = bgColor;
+            eCtx.fillRect(0, 0, fw, fh);
+
+            if (img) {
+                eCtx.drawImage(img, imgX, imgY, img.width * scale, img.height * scale);
+            }
+
+            const link = document.createElement('a');
+            link.download = `flap_artwork_${fw}x${fh}.png`;
+            link.href = exportCanvas.toDataURL('image/png');
+            link.click();
+        });
+
+        // Initial draw
+        updateCanvasSize();
+    </script>
+</body>
+</html>
