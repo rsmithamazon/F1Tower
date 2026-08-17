@@ -62,6 +62,17 @@
 
         .scale-display { font-size: 0.85rem; color: #DC0000; min-width: 45px; text-align: center; }
 
+        .layer-btn {
+            background: #2a2a30; border: 1px solid #555; border-radius: 6px;
+            padding: 6px 14px; color: #e0e0e0; cursor: pointer; font-size: 0.85rem;
+        }
+        .layer-btn:hover { background: #3a3a42; }
+        .layer-btn.active { background: #DC0000; border-color: #DC0000; color: #fff; font-weight: bold; }
+        .layer-btn.has-image::after { content: " \25CF"; color: #4caf50; font-size: 0.7rem; }
+        .layer-btn.active.has-image::after { color: #fff; }
+
+        .layer-divider { width: 1px; height: 24px; background: #444; margin: 0 4px; }
+
         .canvas-container {
             position: relative; border: 2px solid #333; border-radius: 8px;
             overflow: hidden; cursor: grab; background: #111;
@@ -86,7 +97,7 @@
 
         .instructions {
             margin-top: 16px; font-size: 0.8rem; color: #666;
-            text-align: center; max-width: 600px; line-height: 1.5;
+            text-align: center; max-width: 640px; line-height: 1.5;
         }
 
         .nudge-group {
@@ -110,11 +121,52 @@
     </div>
 
     <div class="controls">
+        <label>Save as:</label>
+        <input type="text" id="exportName" placeholder="auto: flap_artwork_WxH.png" style="width:220px; background:#2a2a30; border:1px solid #444; border-radius:4px; padding:4px 8px; color:#e0e0e0; font-family:monospace;">
+        <label title="Renders at a multiple of the flap size for maximum detail. PNG is lossless.">Quality:</label>
+        <select id="exportScale" style="background:#2a2a30; border:1px solid #444; border-radius:4px; padding:5px 8px; color:#e0e0e0;">
+            <option value="1">1&times;</option>
+            <option value="2">2&times;</option>
+            <option value="4" selected>4&times;</option>
+            <option value="8">8&times;</option>
+        </select>
+        <span id="exportSizeInfo" class="scale-display" style="min-width:120px;">&mdash;</span>
+    </div>
+
+    <div class="controls">
+        <label>Save to:</label>
+        <span id="saveModeLabel" style="font-size:0.8rem; color:#888;">Browser downloads</span>
+        <label>Subfolder:</label>
+        <input type="text" id="exportSubfolder" placeholder="e.g. Flags/Mexico" style="width:150px; background:#2a2a30; border:1px solid #444; border-radius:4px; padding:4px 8px; color:#e0e0e0; font-family:monospace;">
+        <button class="secondary" id="exportFolderBtn" title="Only needed when NOT using the local server. Pick a folder to save into.">Choose Folder&hellip;</button>
+        <span id="exportFolderName" style="font-size:0.8rem; color:#888;"></span>
+    </div>
+
+    <div class="controls">
+        <label>Editing Layer:</label>
+        <button class="layer-btn active" data-layer="full">Full Flap</button>
+        <button class="layer-btn" data-layer="top">Top Half</button>
+        <button class="layer-btn" data-layer="bottom">Bottom Half</button>
+        <div class="layer-divider"></div>
+        <label><input type="checkbox" id="layerEnabled" checked style="accent-color:#DC0000; vertical-align:middle;"> Show this layer</label>
+        <button class="secondary" id="layerClear">Remove Image</button>
+    </div>
+
+    <div class="controls">
         <label>Scale:</label>
         <button class="nudge-btn" id="zoomOut">-</button>
         <input type="range" id="scaleSlider" min="10" max="500" value="100">
         <button class="nudge-btn" id="zoomIn">+</button>
         <span class="scale-display" id="scaleDisplay">100%</span>
+    </div>
+
+    <div class="controls">
+        <label>Rotate:</label>
+        <button class="nudge-btn" id="rotateLeft" title="Rotate 90&deg; left">&#8634;</button>
+        <input type="range" id="rotateSlider" min="-180" max="180" value="0">
+        <button class="nudge-btn" id="rotateRight" title="Rotate 90&deg; right">&#8635;</button>
+        <span class="scale-display" id="rotateDisplay">0&deg;</span>
+        <button class="secondary" id="extendEdgesBtn" title="Repeat top &amp; bottom edge colors into the empty space above and below the image">Extend Edges: Off</button>
     </div>
 
     <div class="controls">
@@ -130,7 +182,11 @@
         <label>H:</label>
         <input type="number" id="flapHeight" value="700" min="50" max="2000" style="width:65px; background:#2a2a30; border:1px solid #444; border-radius:4px; padding:4px 8px; color:#e0e0e0;">
         <label>Gap:</label>
-        <input type="number" id="splitGap" value="4" min="0" max="20" style="width:50px; background:#2a2a30; border:1px solid #444; border-radius:4px; padding:4px 8px; color:#e0e0e0;">
+        <input type="number" id="splitGap" value="10" min="0" max="200" style="width:50px; background:#2a2a30; border:1px solid #444; border-radius:4px; padding:4px 8px; color:#e0e0e0;">
+        <label title="How far the notch cuts in from each side">Detent W:</label>
+        <input type="number" id="detentDepth" value="20" min="0" max="200" style="width:55px; background:#2a2a30; border:1px solid #444; border-radius:4px; padding:4px 8px; color:#e0e0e0;">
+        <label title="How far the notch reaches above and below the center line">Detent H:</label>
+        <input type="number" id="detentReach" value="180" min="0" max="2000" style="width:60px; background:#2a2a30; border:1px solid #444; border-radius:4px; padding:4px 8px; color:#e0e0e0;">
     </div>
 
     <div class="canvas-container" id="canvasContainer">
@@ -155,10 +211,14 @@
     </div>
 
     <p class="instructions">
-        <b>Drag</b> to pan | <b>Scroll wheel</b> or <b>+/-</b> buttons to zoom |
-        <b>Arrow buttons</b> for 1px nudge | <b>Arrow keys</b> also work<br>
-        <b>BG Fill</b> color picker fills empty space around the image |
-        <b>Center</b> snaps image to middle | <b>Export</b> saves the cropped flap as PNG
+        <b>Editing Layer</b> picks which image the controls affect: <b>Full Flap</b> spans the whole flap, <b>Top/Bottom Half</b> are optional overrides clipped to their half.
+        Pick a layer, then use the file picker to load an image into it. <b>Show this layer</b> toggles it on/off; <b>Remove Image</b> clears it.<br>
+        <b>Drag</b> to pan | <b>Scroll wheel</b> or <b>+/-</b> to zoom | <b>Arrow buttons/keys</b> nudge 1px |
+        <b>Rotate</b> spins the image | <b>Extend Edges</b> repeats the top &amp; bottom colors into the empty space (no distortion)<br>
+        <b>BG Fill</b> fills empty space around images | <b>Center</b> snaps the active layer to its region<br>
+        <b>Detent W/H</b> shows the side notches near the split (display only) | <b>Export</b> saves the full composited rectangle as PNG (no detent, bleeds to edge)<br>
+        <b>Quality</b> renders at up to 8&times; for print-ready detail (PNG is lossless). To save straight into <i>static assets</i>, run <code>python3 simulator/designer_server.py</code> and open this page at <code>http://localhost:8000/simulator/flap-designer.html</code>, then set a <b>Subfolder</b>.
+        Opened as a plain file, it downloads (or use <b>Choose Folder</b> in Chrome/Edge).
     </p>
 
     <script>
@@ -174,15 +234,39 @@
         const flapWidthInput = document.getElementById('flapWidth');
         const flapHeightInput = document.getElementById('flapHeight');
         const splitGapInput = document.getElementById('splitGap');
+        const detentDepthInput = document.getElementById('detentDepth');
+        const detentReachInput = document.getElementById('detentReach');
         const dimensionsInfo = document.getElementById('dimensionsInfo');
         const previewCanvas = document.getElementById('previewCanvas');
         const splitTop = document.getElementById('splitTop');
         const splitBottom = document.getElementById('splitBottom');
 
-        let img = null;
-        let imgX = 0;
-        let imgY = 0;
-        let scale = 1.0;
+        const rotateSlider = document.getElementById('rotateSlider');
+        const rotateDisplay = document.getElementById('rotateDisplay');
+        const extendEdgesBtn = document.getElementById('extendEdgesBtn');
+        const layerEnabledInput = document.getElementById('layerEnabled');
+        const layerClearBtn = document.getElementById('layerClear');
+        const layerButtons = document.querySelectorAll('.layer-btn');
+        const exportNameInput = document.getElementById('exportName');
+        const exportFolderBtn = document.getElementById('exportFolderBtn');
+        const exportFolderName = document.getElementById('exportFolderName');
+        const exportScaleSelect = document.getElementById('exportScale');
+        const exportSizeInfo = document.getElementById('exportSizeInfo');
+        const exportSubfolderInput = document.getElementById('exportSubfolder');
+        const saveModeLabel = document.getElementById('saveModeLabel');
+
+        // --- LAYER MODEL ---
+        // 'full' spans the whole flap (base). 'top' and 'bottom' are optional
+        // overrides clipped to their half of the flap, drawn on top of 'full'.
+        function makeLayer() {
+            return { img: null, x: 0, y: 0, scale: 1.0, rotation: 0, extend: false, enabled: true };
+        }
+        const layers = { full: makeLayer(), top: makeLayer(), bottom: makeLayer() };
+        const LAYER_ORDER = ['full', 'top', 'bottom'];
+        const LAYER_LABELS = { full: 'Full Flap', top: 'Top Half', bottom: 'Bottom Half' };
+        let activeLayer = 'full';
+        function A() { return layers[activeLayer]; }
+
         let isDragging = false;
         let dragStartX = 0;
         let dragStartY = 0;
@@ -192,11 +276,110 @@
         const CANVAS_PADDING = 60;
         const NUDGE_PX = 1;
         const ZOOM_STEP = 5;
+        const EDGE_EXTENT = 10000; // large enough to cover any canvas; clipped automatically
 
         function getFlapWidth() { return parseInt(flapWidthInput.value) || 430; }
         function getFlapHeight() { return parseInt(flapHeightInput.value) || 700; }
-        function getSplitGap() { return parseInt(splitGapInput.value) || 4; }
+        function getSplitGap() { const v = parseInt(splitGapInput.value); return isNaN(v) ? 10 : v; }
+        function getDetentDepth() { return Math.max(0, parseInt(detentDepthInput.value) || 0); }
+        function getDetentReach() { return Math.max(0, parseInt(detentReachInput.value) || 0); }
         function getBgColor() { return bgColorInput.value; }
+
+        // The two side-notch rectangles (flap-space) that form the detent:
+        // the flap narrows by 'depth' on each side, reaching 'reach' px above
+        // and below the center split line. This is display-only — export stays
+        // a full rectangle.
+        function getDetentRects() {
+            const fw = getFlapWidth(), fh = getFlapHeight();
+            const depth = getDetentDepth(), reach = getDetentReach();
+            if (depth <= 0 || reach <= 0) return [];
+            const cy = fh / 2;
+            const y0 = Math.max(0, cy - reach);
+            const y1 = Math.min(fh, cy + reach);
+            const h = y1 - y0;
+            return [
+                { x: 0, y: y0, w: depth, h: h },          // left notch
+                { x: fw - depth, y: y0, w: depth, h: h }   // right notch
+            ];
+        }
+
+        // Paint the notches over the flap on the main design canvas (dark, so
+        // artwork appears cut away like the real card).
+        function paintDetentSolid(targetCtx, originX, originY) {
+            getDetentRects().forEach(r => {
+                targetCtx.fillStyle = '#111';
+                targetCtx.fillRect(originX + r.x, originY + r.y, r.w, r.h);
+                targetCtx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+                targetCtx.fillRect(originX + r.x, originY + r.y, r.w, r.h);
+            });
+        }
+
+        // Clear the notches to transparency (used in the split preview so the
+        // page background shows through, reading as removed material).
+        function paintDetentClear(targetCtx, originX, originY) {
+            getDetentRects().forEach(r => {
+                targetCtx.clearRect(originX + r.x, originY + r.y, r.w, r.h);
+            });
+        }
+
+        // The flap-space rectangle a given layer occupies. gapOverride lets the
+        // export/cropped preview render with no gap (halves meet at the center)
+        // so the result is one fluid picture.
+        function getRegionRect(key, gapOverride) {
+            const fw = getFlapWidth(), fh = getFlapHeight();
+            const gap = (gapOverride !== undefined) ? gapOverride : getSplitGap();
+            if (key === 'top')    return { x: 0, y: 0, w: fw, h: fh / 2 - gap / 2 };
+            if (key === 'bottom') { const y = fh / 2 + gap / 2; return { x: 0, y: y, w: fw, h: fh - y }; }
+            return { x: 0, y: 0, w: fw, h: fh }; // full
+        }
+
+        // Draws a single layer's image (with pan/scale/rotation/extend),
+        // clipped to its region. originX/originY = flap top-left in target ctx.
+        function drawLayer(targetCtx, originX, originY, L, region) {
+            if (!L.enabled || !L.img) return;
+            const img = L.img;
+            const drawW = img.width * L.scale;
+            const drawH = img.height * L.scale;
+            const drawX = originX + L.x;
+            const drawY = originY + L.y;
+
+            targetCtx.save();
+            // Clip to the layer's region so overrides stay within their half.
+            targetCtx.beginPath();
+            targetCtx.rect(originX + region.x, originY + region.y, region.w, region.h);
+            targetCtx.clip();
+
+            if (L.rotation === 0) {
+                if (L.extend) {
+                    targetCtx.drawImage(img, 0, 0, img.width, 1,
+                        drawX, drawY - EDGE_EXTENT, drawW, EDGE_EXTENT);
+                    targetCtx.drawImage(img, 0, img.height - 1, img.width, 1,
+                        drawX, drawY + drawH, drawW, EDGE_EXTENT);
+                }
+                targetCtx.drawImage(img, drawX, drawY, drawW, drawH);
+            } else {
+                targetCtx.translate(drawX + drawW / 2, drawY + drawH / 2);
+                targetCtx.rotate(L.rotation * Math.PI / 180);
+                if (L.extend) {
+                    targetCtx.drawImage(img, 0, 0, img.width, 1,
+                        -drawW / 2, -drawH / 2 - EDGE_EXTENT, drawW, EDGE_EXTENT);
+                    targetCtx.drawImage(img, 0, img.height - 1, img.width, 1,
+                        -drawW / 2, drawH / 2, drawW, EDGE_EXTENT);
+                }
+                targetCtx.drawImage(img, -drawW / 2, -drawH / 2, drawW, drawH);
+            }
+            targetCtx.restore();
+        }
+
+        // Composites all enabled layers: full base first, then top/bottom overrides.
+        // Pass gapOverride=0 to make the two halves meet (used for export).
+        function renderArtwork(targetCtx, originX, originY, gapOverride) {
+            LAYER_ORDER.forEach(key => {
+                drawLayer(targetCtx, originX, originY, layers[key], getRegionRect(key, gapOverride));
+            });
+        }
+
+        function anyImage() { return LAYER_ORDER.some(k => layers[k].img); }
 
         function updateCanvasSize() {
             const fw = getFlapWidth();
@@ -222,14 +405,11 @@
             ctx.fillStyle = bgColor;
             ctx.fillRect(CANVAS_PADDING, CANVAS_PADDING, fw, fh);
 
-            // Draw image if loaded
-            if (img) {
-                const drawW = img.width * scale;
-                const drawH = img.height * scale;
-                const drawX = CANVAS_PADDING + imgX;
-                const drawY = CANVAS_PADDING + imgY;
-                ctx.drawImage(img, drawX, drawY, drawW, drawH);
-            }
+            // Draw all layers
+            renderArtwork(ctx, CANVAS_PADDING, CANVAS_PADDING);
+
+            // Cut the detent notches out of the flap (display-only)
+            paintDetentSolid(ctx, CANVAS_PADDING, CANVAS_PADDING);
 
             // Darken outside the flap area
             ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
@@ -238,10 +418,40 @@
             ctx.fillRect(0, CANVAS_PADDING, CANVAS_PADDING, fh);
             ctx.fillRect(CANVAS_PADDING + fw, CANVAS_PADDING, CANVAS_PADDING, fh);
 
-            // Flap boundary (red outline)
+            // Flap boundary (red outline) — notched if a detent is set
             ctx.strokeStyle = '#DC0000';
             ctx.lineWidth = 2;
-            ctx.strokeRect(CANVAS_PADDING, CANVAS_PADDING, fw, fh);
+            const depth = getDetentDepth();
+            const reach = getDetentReach();
+            if (depth > 0 && reach > 0) {
+                const L = CANVAS_PADDING, T = CANVAS_PADDING;
+                const R = CANVAS_PADDING + fw, B = CANVAS_PADDING + fh;
+                const cy = CANVAS_PADDING + fh / 2;
+                const ny0 = Math.max(T, cy - reach);
+                const ny1 = Math.min(B, cy + reach);
+                ctx.beginPath();
+                // top edge
+                ctx.moveTo(L, T);
+                ctx.lineTo(R, T);
+                // right edge down into the notch and back out
+                ctx.lineTo(R, ny0);
+                ctx.lineTo(R - depth, ny0);
+                ctx.lineTo(R - depth, ny1);
+                ctx.lineTo(R, ny1);
+                // right edge to bottom
+                ctx.lineTo(R, B);
+                // bottom edge
+                ctx.lineTo(L, B);
+                // left edge up into the notch and back out
+                ctx.lineTo(L, ny1);
+                ctx.lineTo(L + depth, ny1);
+                ctx.lineTo(L + depth, ny0);
+                ctx.lineTo(L, ny0);
+                ctx.closePath();
+                ctx.stroke();
+            } else {
+                ctx.strokeRect(CANVAS_PADDING, CANVAS_PADDING, fw, fh);
+            }
 
             // Split line (middle of flap)
             if (gap > 0) {
@@ -289,15 +499,13 @@
             const gap = getSplitGap();
             const bgColor = getBgColor();
 
-            // Cropped preview
+            // Cropped preview (full flap composite)
             previewCanvas.width = fw;
             previewCanvas.height = fh;
             const pCtx = previewCanvas.getContext('2d');
             pCtx.fillStyle = bgColor;
             pCtx.fillRect(0, 0, fw, fh);
-            if (img) {
-                pCtx.drawImage(img, imgX, imgY, img.width * scale, img.height * scale);
-            }
+            renderArtwork(pCtx, 0, 0, 0); // matches the export: no gap, one fluid picture
 
             // Split preview
             const halfH = Math.floor((fh - gap) / 2);
@@ -314,65 +522,122 @@
             botCtx.fillStyle = bgColor;
             botCtx.fillRect(0, 0, fw, halfH);
 
-            if (img) {
-                const drawW = img.width * scale;
-                const drawH = img.height * scale;
-                topCtx.drawImage(img, imgX, imgY, drawW, drawH);
-                botCtx.drawImage(img, imgX, imgY - halfH - gap, drawW, drawH);
+            // Top canvas shows flap y in [0, halfH]; bottom shows [halfH+gap, fh].
+            renderArtwork(topCtx, 0, 0);
+            renderArtwork(botCtx, 0, -(halfH + gap));
+
+            // Show the detent notches in the split view (actual look).
+            // The Cropped Result preview above intentionally stays a full rectangle.
+            paintDetentClear(topCtx, 0, 0);
+            paintDetentClear(botCtx, 0, -(halfH + gap));
+        }
+
+        // Sync the shared control widgets to reflect the active layer's state.
+        function syncControls() {
+            const L = A();
+            scaleSlider.value = Math.round(L.scale * 100);
+            scaleDisplay.textContent = Math.round(L.scale * 100) + '%';
+            rotateSlider.value = Math.round(L.rotation);
+            rotateDisplay.textContent = Math.round(L.rotation) + '\u00B0';
+            extendEdgesBtn.textContent = 'Extend Edges: ' + (L.extend ? 'On' : 'Off');
+            extendEdgesBtn.style.background = L.extend ? '#DC0000' : '#333';
+            layerEnabledInput.checked = L.enabled;
+
+            layerButtons.forEach(btn => {
+                const key = btn.dataset.layer;
+                btn.classList.toggle('active', key === activeLayer);
+                btn.classList.toggle('has-image', !!layers[key].img);
+            });
+
+            const label = LAYER_LABELS[activeLayer];
+            if (L.img) {
+                dimensionsInfo.textContent = `${label}: ${L.img.width}x${L.img.height}px | Scale ${Math.round(L.scale * 100)}%`;
+            } else {
+                dimensionsInfo.textContent = anyImage() ? `${label}: no image (use the file picker to load one)` : 'Load an image to begin';
             }
         }
 
-        // --- IMAGE LOADING ---
+        // --- LAYER SELECTION ---
+        layerButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                activeLayer = btn.dataset.layer;
+                syncControls();
+            });
+        });
+
+        layerEnabledInput.addEventListener('change', () => {
+            A().enabled = layerEnabledInput.checked;
+            draw();
+        });
+
+        layerClearBtn.addEventListener('click', () => {
+            const L = A();
+            L.img = null;
+            L.x = 0; L.y = 0; L.scale = 1.0; L.rotation = 0; L.extend = false; L.enabled = true;
+            syncControls();
+            draw();
+        });
+
+        // Fit a freshly loaded image to fill its layer's region, then center it.
+        function fitLayerToRegion(L, key) {
+            const r = getRegionRect(key);
+            const scaleX = r.w / L.img.width;
+            const scaleY = r.h / L.img.height;
+            L.scale = Math.max(scaleX, scaleY);
+            L.rotation = 0;
+            L.extend = false;
+            centerLayer(L, key);
+        }
+
+        function centerLayer(L, key) {
+            if (!L.img) return;
+            const r = getRegionRect(key);
+            L.x = r.x + (r.w - L.img.width * L.scale) / 2;
+            L.y = r.y + (r.h - L.img.height * L.scale) / 2;
+        }
+
+        // --- IMAGE LOADING (into the active layer) ---
         imageInput.addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (!file) return;
+            const targetKey = activeLayer;
             const reader = new FileReader();
             reader.onload = (ev) => {
-                img = new Image();
-                img.onload = () => {
-                    const fw = getFlapWidth();
-                    const fh = getFlapHeight();
-                    const scaleX = fw / img.width;
-                    const scaleY = fh / img.height;
-                    scale = Math.max(scaleX, scaleY);
-                    scaleSlider.value = Math.round(scale * 100);
-                    scaleDisplay.textContent = Math.round(scale * 100) + '%';
-                    centerImage();
-                    dimensionsInfo.textContent = `Image: ${img.width}x${img.height}px | Flap: ${fw}x${fh}px | Scale: ${Math.round(scale * 100)}%`;
+                const image = new Image();
+                image.onload = () => {
+                    const L = layers[targetKey];
+                    L.img = image;
+                    L.enabled = true;
+                    fitLayerToRegion(L, targetKey);
+                    if (activeLayer === targetKey) syncControls();
                     draw();
                 };
-                img.src = ev.target.result;
+                image.src = ev.target.result;
             };
             reader.readAsDataURL(file);
+            // allow re-loading the same file later
+            e.target.value = '';
         });
 
         // --- CENTER ---
-        function centerImage() {
-            if (!img) return;
-            const fw = getFlapWidth();
-            const fh = getFlapHeight();
-            imgX = (fw - img.width * scale) / 2;
-            imgY = (fh - img.height * scale) / 2;
-        }
-
-        centerBtn.addEventListener('click', () => { centerImage(); draw(); });
+        centerBtn.addEventListener('click', () => { centerLayer(A(), activeLayer); draw(); });
 
         // --- SCALE ---
         function applyScale(newVal) {
-            const fw = getFlapWidth();
-            const fh = getFlapHeight();
-            const oldScale = scale;
+            const L = A();
+            const r = getRegionRect(activeLayer);
+            const oldScale = L.scale;
             newVal = Math.max(10, Math.min(500, newVal));
             scaleSlider.value = newVal;
-            scale = newVal / 100;
-            scaleDisplay.textContent = Math.round(scale * 100) + '%';
-            // Scale from center of flap area
-            const centerX = fw / 2;
-            const centerY = fh / 2;
-            imgX = centerX - (centerX - imgX) * (scale / oldScale);
-            imgY = centerY - (centerY - imgY) * (scale / oldScale);
-            if (img) {
-                dimensionsInfo.textContent = `Image: ${img.width}x${img.height}px | Flap: ${fw}x${fh}px | Scale: ${Math.round(scale * 100)}%`;
+            L.scale = newVal / 100;
+            scaleDisplay.textContent = Math.round(L.scale * 100) + '%';
+            // Scale about the center of the active layer's region
+            const centerX = r.x + r.w / 2;
+            const centerY = r.y + r.h / 2;
+            L.x = centerX - (centerX - L.x) * (L.scale / oldScale);
+            L.y = centerY - (centerY - L.y) * (L.scale / oldScale);
+            if (L.img) {
+                dimensionsInfo.textContent = `${LAYER_LABELS[activeLayer]}: ${L.img.width}x${L.img.height}px | Scale ${Math.round(L.scale * 100)}%`;
             }
             draw();
         }
@@ -381,45 +646,66 @@
         document.getElementById('zoomIn').addEventListener('click', () => { applyScale(parseInt(scaleSlider.value) + ZOOM_STEP); });
         document.getElementById('zoomOut').addEventListener('click', () => { applyScale(parseInt(scaleSlider.value) - ZOOM_STEP); });
 
+        // --- ROTATE ---
+        function applyRotation(deg) {
+            deg = ((deg + 180) % 360 + 360) % 360 - 180; // wrap into -180..180
+            A().rotation = deg;
+            rotateSlider.value = Math.round(deg);
+            rotateDisplay.textContent = Math.round(deg) + '\u00B0';
+            draw();
+        }
+        rotateSlider.addEventListener('input', () => { applyRotation(parseInt(rotateSlider.value)); });
+        document.getElementById('rotateLeft').addEventListener('click', () => { applyRotation(A().rotation - 90); });
+        document.getElementById('rotateRight').addEventListener('click', () => { applyRotation(A().rotation + 90); });
+
+        // --- EXTEND EDGES (repeat top/bottom edge colors, no distortion) ---
+        extendEdgesBtn.addEventListener('click', () => {
+            const L = A();
+            L.extend = !L.extend;
+            extendEdgesBtn.textContent = 'Extend Edges: ' + (L.extend ? 'On' : 'Off');
+            extendEdgesBtn.style.background = L.extend ? '#DC0000' : '#333';
+            draw();
+        });
+
         // --- NUDGE BUTTONS ---
-        document.getElementById('nudgeLeft').addEventListener('click', () => { imgX -= NUDGE_PX; draw(); });
-        document.getElementById('nudgeRight').addEventListener('click', () => { imgX += NUDGE_PX; draw(); });
-        document.getElementById('nudgeUp').addEventListener('click', () => { imgY -= NUDGE_PX; draw(); });
-        document.getElementById('nudgeDown').addEventListener('click', () => { imgY += NUDGE_PX; draw(); });
+        document.getElementById('nudgeLeft').addEventListener('click', () => { A().x -= NUDGE_PX; draw(); });
+        document.getElementById('nudgeRight').addEventListener('click', () => { A().x += NUDGE_PX; draw(); });
+        document.getElementById('nudgeUp').addEventListener('click', () => { A().y -= NUDGE_PX; draw(); });
+        document.getElementById('nudgeDown').addEventListener('click', () => { A().y += NUDGE_PX; draw(); });
 
         // --- KEYBOARD CONTROLS ---
         document.addEventListener('keydown', (e) => {
             if (e.target.tagName === 'INPUT') return; // don't interfere with inputs
             switch (e.key) {
-                case 'ArrowLeft':  imgX -= NUDGE_PX; draw(); e.preventDefault(); break;
-                case 'ArrowRight': imgX += NUDGE_PX; draw(); e.preventDefault(); break;
-                case 'ArrowUp':    imgY -= NUDGE_PX; draw(); e.preventDefault(); break;
-                case 'ArrowDown':  imgY += NUDGE_PX; draw(); e.preventDefault(); break;
+                case 'ArrowLeft':  A().x -= NUDGE_PX; draw(); e.preventDefault(); break;
+                case 'ArrowRight': A().x += NUDGE_PX; draw(); e.preventDefault(); break;
+                case 'ArrowUp':    A().y -= NUDGE_PX; draw(); e.preventDefault(); break;
+                case 'ArrowDown':  A().y += NUDGE_PX; draw(); e.preventDefault(); break;
                 case '+': case '=': applyScale(parseInt(scaleSlider.value) + ZOOM_STEP); e.preventDefault(); break;
                 case '-': case '_': applyScale(parseInt(scaleSlider.value) - ZOOM_STEP); e.preventDefault(); break;
             }
         });
 
-        // --- DRAG ---
+        // --- DRAG (pans the active layer) ---
         canvas.addEventListener('mousedown', (e) => {
-            if (!img) return;
+            if (!A().img) return;
             isDragging = true;
             dragStartX = e.clientX;
             dragStartY = e.clientY;
-            imgStartX = imgX;
-            imgStartY = imgY;
+            imgStartX = A().x;
+            imgStartY = A().y;
         });
         window.addEventListener('mousemove', (e) => {
             if (!isDragging) return;
-            imgX = imgStartX + (e.clientX - dragStartX);
-            imgY = imgStartY + (e.clientY - dragStartY);
+            A().x = imgStartX + (e.clientX - dragStartX);
+            A().y = imgStartY + (e.clientY - dragStartY);
             draw();
         });
         window.addEventListener('mouseup', () => { isDragging = false; });
 
         // Mouse wheel zoom
         canvas.addEventListener('wheel', (e) => {
-            if (!img) return;
+            if (!A().img) return;
             e.preventDefault();
             const delta = e.deltaY > 0 ? -ZOOM_STEP : ZOOM_STEP;
             applyScale(parseInt(scaleSlider.value) + delta);
@@ -482,50 +768,228 @@
         });
 
         // --- DIMENSION INPUTS ---
-        flapWidthInput.addEventListener('change', updateCanvasSize);
-        flapHeightInput.addEventListener('change', updateCanvasSize);
+        flapWidthInput.addEventListener('change', () => { updateCanvasSize(); updateExportSizeInfo(); });
+        flapHeightInput.addEventListener('change', () => { updateCanvasSize(); updateExportSizeInfo(); });
         splitGapInput.addEventListener('change', draw);
+        detentDepthInput.addEventListener('change', draw);
+        detentReachInput.addEventListener('change', draw);
 
-        // --- RESET ---
+        // --- RESET (active layer) ---
         resetBtn.addEventListener('click', () => {
-            if (!img) return;
-            const fw = getFlapWidth();
-            const fh = getFlapHeight();
-            const scaleX = fw / img.width;
-            const scaleY = fh / img.height;
-            scale = Math.max(scaleX, scaleY);
-            scaleSlider.value = Math.round(scale * 100);
-            scaleDisplay.textContent = Math.round(scale * 100) + '%';
-            centerImage();
+            const L = A();
+            if (!L.img) return;
+            fitLayerToRegion(L, activeLayer);
+            syncControls();
             draw();
         });
 
-        // --- EXPORT ---
-        exportBtn.addEventListener('click', () => {
-            const fw = getFlapWidth();
-            const fh = getFlapHeight();
-            const bgColor = getBgColor();
+        // --- EXPORT DESTINATION (File System Access API) ---
+        // Browsers can't write to a hard-coded path, but with the File System
+        // Access API the user can grant access to a folder (e.g. static assets)
+        // once, and exports write straight into it. The chosen folder handle is
+        // remembered across reloads via IndexedDB. Unsupported browsers fall
+        // back to a normal download.
+        let exportDirHandle = null;
+        const fsAccessSupported = ('showDirectoryPicker' in window);
 
+        // Minimal IndexedDB helpers to persist the directory handle.
+        const IDB_NAME = 'flapDesigner', IDB_STORE = 'handles', IDB_KEY = 'exportDir';
+        function idbOpen() {
+            return new Promise((resolve, reject) => {
+                const req = indexedDB.open(IDB_NAME, 1);
+                req.onupgradeneeded = () => req.result.createObjectStore(IDB_STORE);
+                req.onsuccess = () => resolve(req.result);
+                req.onerror = () => reject(req.error);
+            });
+        }
+        async function idbSet(key, val) {
+            const db = await idbOpen();
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction(IDB_STORE, 'readwrite');
+                tx.objectStore(IDB_STORE).put(val, key);
+                tx.oncomplete = () => resolve();
+                tx.onerror = () => reject(tx.error);
+            });
+        }
+        async function idbGet(key) {
+            const db = await idbOpen();
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction(IDB_STORE, 'readonly');
+                const r = tx.objectStore(IDB_STORE).get(key);
+                r.onsuccess = () => resolve(r.result);
+                r.onerror = () => reject(r.error);
+            });
+        }
+
+        async function ensurePermission(handle, mode = 'readwrite') {
+            const opts = { mode };
+            if ((await handle.queryPermission(opts)) === 'granted') return true;
+            if ((await handle.requestPermission(opts)) === 'granted') return true;
+            return false;
+        }
+
+        function setFolderLabel(text) { exportFolderName.textContent = text; }
+
+        if (!fsAccessSupported) {
+            exportFolderBtn.disabled = true;
+            exportFolderBtn.title = 'This browser cannot save into a folder. Use Chrome or Edge. Exports will download instead.';
+            setFolderLabel('Browser downloads (folder saving needs Chrome/Edge)');
+        }
+
+        exportFolderBtn.addEventListener('click', async () => {
+            if (!fsAccessSupported) return;
+            try {
+                const handle = await window.showDirectoryPicker({ id: 'flapExport', mode: 'readwrite' });
+                exportDirHandle = handle;
+                setFolderLabel('Saving into: ' + handle.name + '/');
+                try { await idbSet(IDB_KEY, handle); } catch (e) { /* non-fatal */ }
+            } catch (e) {
+                // user cancelled the picker — leave as-is
+            }
+        });
+
+        // Restore a previously chosen folder (permission is re-requested on first export).
+        (async () => {
+            if (!fsAccessSupported) return;
+            try {
+                const handle = await idbGet(IDB_KEY);
+                if (handle) {
+                    exportDirHandle = handle;
+                    setFolderLabel('Saving into: ' + handle.name + '/ (will confirm access on export)');
+                }
+            } catch (e) { /* ignore */ }
+        })();
+
+        function getExportFilename() {
+            const fw = getFlapWidth(), fh = getFlapHeight();
+            let name = (exportNameInput.value || '').trim() || `flap_artwork_${fw}x${fh}`;
+            // strip any path separators the browser wouldn't accept in a filename
+            name = name.replace(/[\\/]+/g, '_');
+            if (!/\.png$/i.test(name)) name += '.png';
+            return name;
+        }
+
+        function getExportScale() { return parseInt(exportScaleSelect.value) || 1; }
+
+        function updateExportSizeInfo() {
+            const m = getExportScale();
+            exportSizeInfo.textContent = `${getFlapWidth() * m} \u00D7 ${getFlapHeight() * m}px`;
+        }
+        exportScaleSelect.addEventListener('change', updateExportSizeInfo);
+
+        // Detect whether we're being served by the local designer_server.py,
+        // which can save straight into "static assets".
+        let backendAvailable = false;
+        async function probeBackend() {
+            if (!/^https?:$/.test(location.protocol)) return;
+            try {
+                const r = await fetch('/save', { method: 'OPTIONS' });
+                backendAvailable = (r.status === 204 || r.ok);
+            } catch (e) { backendAvailable = false; }
+        }
+
+        function updateSaveModeUI() {
+            if (backendAvailable) {
+                saveModeLabel.textContent = 'Local server \u2192 static assets/';
+                saveModeLabel.style.color = '#4caf50';
+                exportSubfolderInput.disabled = false;
+                exportFolderBtn.style.display = 'none';
+            } else if (fsAccessSupported) {
+                saveModeLabel.textContent = 'Pick a folder \u2192';
+                saveModeLabel.style.color = '#888';
+                exportSubfolderInput.disabled = true;
+                exportFolderBtn.style.display = '';
+            } else {
+                saveModeLabel.textContent = 'Browser downloads';
+                saveModeLabel.style.color = '#888';
+                exportSubfolderInput.disabled = true;
+                exportFolderBtn.style.display = 'none';
+            }
+        }
+
+        // Render the composite at the chosen quality multiple.
+        function renderExportCanvas() {
+            const fw = getFlapWidth(), fh = getFlapHeight(), mult = getExportScale();
             const exportCanvas = document.createElement('canvas');
-            exportCanvas.width = fw;
-            exportCanvas.height = fh;
+            exportCanvas.width = fw * mult;
+            exportCanvas.height = fh * mult;
             const eCtx = exportCanvas.getContext('2d');
-
-            eCtx.fillStyle = bgColor;
+            eCtx.imageSmoothingEnabled = true;
+            eCtx.imageSmoothingQuality = 'high';
+            eCtx.scale(mult, mult);
+            eCtx.fillStyle = getBgColor();
             eCtx.fillRect(0, 0, fw, fh);
+            renderArtwork(eCtx, 0, 0, 0); // gap=0 → one fluid picture, halves meet at center
+            return exportCanvas;
+        }
 
-            if (img) {
-                eCtx.drawImage(img, imgX, imgY, img.width * scale, img.height * scale);
+        // --- EXPORT (full flap composite, no detent) ---
+        exportBtn.addEventListener('click', async () => {
+            const exportCanvas = renderExportCanvas();
+            const filename = getExportFilename();
+
+            // Mode 1: local server saves directly into static assets.
+            if (backendAvailable) {
+                const sub = (exportSubfolderInput.value || '').trim().replace(/^\/+|\/+$/g, '');
+                const relPath = sub ? sub + '/' + filename : filename;
+                try {
+                    const res = await fetch('/save', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ path: relPath, dataUrl: exportCanvas.toDataURL('image/png') })
+                    });
+                    const j = await res.json();
+                    if (j.ok) {
+                        saveModeLabel.textContent = 'Saved \u2192 ' + j.path;
+                        saveModeLabel.style.color = '#4caf50';
+                        return;
+                    }
+                    throw new Error(j.error || 'server error');
+                } catch (err) {
+                    console.warn('Server save failed, downloading instead:', err);
+                    saveModeLabel.textContent = 'Server save failed (' + err.message + ') \u2014 downloaded';
+                    saveModeLabel.style.color = '#DC0000';
+                    // fall through to download
+                }
             }
 
+            const blob = await new Promise(r => exportCanvas.toBlob(r, 'image/png'));
+
+            // Mode 2: File System Access folder handle.
+            if (!backendAvailable && exportDirHandle) {
+                try {
+                    if (!(await ensurePermission(exportDirHandle))) throw new Error('permission not granted');
+                    const fileHandle = await exportDirHandle.getFileHandle(filename, { create: true });
+                    const writable = await fileHandle.createWritable();
+                    await writable.write(blob);
+                    await writable.close();
+                    setFolderLabel('Saved ' + filename + ' \u2192 ' + exportDirHandle.name + '/');
+                    return;
+                } catch (err) {
+                    console.warn('Direct folder save failed, falling back to download:', err);
+                    setFolderLabel('Folder save failed \u2014 downloaded instead. Re-pick the folder.');
+                }
+            }
+
+            // Mode 3: normal browser download.
+            const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
-            link.download = `flap_artwork_${fw}x${fh}.png`;
-            link.href = exportCanvas.toDataURL('image/png');
+            link.download = filename;
+            link.href = url;
             link.click();
+            URL.revokeObjectURL(url);
         });
+
+        // Initialise export UI (detect backend, size readout).
+        (async () => {
+            await probeBackend();
+            updateSaveModeUI();
+            updateExportSizeInfo();
+        })();
 
         // Initial draw
         updateCanvasSize();
+        syncControls();
     </script>
 </body>
 </html>
