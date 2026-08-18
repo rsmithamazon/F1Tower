@@ -349,12 +349,15 @@
             targetCtx.rect(originX + region.x, originY + region.y, region.w, region.h);
             targetCtx.clip();
 
+            // The edge strips overlap 1px into the image so there's no hairline
+            // seam from sub-pixel rounding; the image is drawn on top afterwards.
+            const OVERLAP = 1;
             if (L.rotation === 0) {
                 if (L.extend) {
                     targetCtx.drawImage(img, 0, 0, img.width, 1,
-                        drawX, drawY - EDGE_EXTENT, drawW, EDGE_EXTENT);
+                        drawX, drawY - EDGE_EXTENT, drawW, EDGE_EXTENT + OVERLAP);
                     targetCtx.drawImage(img, 0, img.height - 1, img.width, 1,
-                        drawX, drawY + drawH, drawW, EDGE_EXTENT);
+                        drawX, drawY + drawH - OVERLAP, drawW, EDGE_EXTENT + OVERLAP);
                 }
                 targetCtx.drawImage(img, drawX, drawY, drawW, drawH);
             } else {
@@ -362,9 +365,9 @@
                 targetCtx.rotate(L.rotation * Math.PI / 180);
                 if (L.extend) {
                     targetCtx.drawImage(img, 0, 0, img.width, 1,
-                        -drawW / 2, -drawH / 2 - EDGE_EXTENT, drawW, EDGE_EXTENT);
+                        -drawW / 2, -drawH / 2 - EDGE_EXTENT, drawW, EDGE_EXTENT + OVERLAP);
                     targetCtx.drawImage(img, 0, img.height - 1, img.width, 1,
-                        -drawW / 2, drawH / 2, drawW, EDGE_EXTENT);
+                        -drawW / 2, drawH / 2 - OVERLAP, drawW, EDGE_EXTENT + OVERLAP);
                 }
                 targetCtx.drawImage(img, -drawW / 2, -drawH / 2, drawW, drawH);
             }

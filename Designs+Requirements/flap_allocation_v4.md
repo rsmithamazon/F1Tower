@@ -76,40 +76,40 @@
 | 15 | 7 | — | — | digit | |
 | 16 | 8 | — | — | digit | |
 | 17 | 9 | — | — | digit | |
-| 18 | Ferrari logo | #DC0000 | — | logo | |
-| 19 | McLaren logo | #FF8000 | — | logo | |
-| 20 | Mercedes logo | #00D2BE | #000000 | logo | Black logo on teal |
-| 21 | Red Bull logo | #1E41FF | — | logo | |
-| 22 | Aston Martin logo | #00A86B | — | logo | |
-| 23 | Alpine logo | #FF87BC | #000000 | logo | Black logo on pink |
-| 24 | Williams logo | #005AFF | — | logo | |
-| 25 | Haas logo | #FFFFFF | #000000 | logo | Black logo on white |
-| 26 | Racing Bulls logo | #6A0DAD | — | logo | |
-| 27 | Audi logo | #900000 | — | logo | |
-| 28 | Cadillac logo | #C8A951 | #000000 | logo | Black logo on gold |
-| 29 | Monaco flag | — | — | flag | Monte Carlo |
-| 30 | Italy flag | — | — | flag | Monza |
-| 31 | UK flag | — | — | flag | Silverstone |
-| 32 | USA flag | — | — | flag | Austin/Miami/Vegas |
-| 33 | Japan flag | — | — | flag | Suzuka |
-| 34 | Brazil flag | — | — | flag | Interlagos |
-| 35 | Belgium flag | — | — | flag | Spa |
-| 36 | UAE flag | — | — | flag | Abu Dhabi |
-| 37 | Australia flag | — | — | flag | Melbourne |
-| 38 | Netherlands flag | — | — | flag | Zandvoort |
-| 39 | Singapore flag | — | — | flag | Marina Bay |
-| 40 | Qatar flag | — | — | flag | Lusail |
-| 41 | Bahrain flag | — | — | flag | Sakhir |
-| 42 | Canada flag | — | — | flag | Montreal |
-| 43 | Mexico flag | — | — | flag | Mexico City |
-| 44 | Spain flag | — | — | flag | Barcelona |
-| 45 | Austria flag | — | — | flag | Red Bull Ring |
-| 46 | Hungary flag | — | — | flag | Hungaroring |
-| 47 | Saudi Arabia flag | — | — | flag | Jeddah |
-| 48 | China flag | — | — | flag | Shanghai |
-| 49 | Azerbaijan flag | — | — | flag | Baku |
-| 50 | Germany flag | — | — | flag | Hockenheim / Nürburgring |
-| 51 | Thailand flag | — | — | flag | Future calendar addition |
+| 18 | Ferrari logo | #DC0000 | — | logo | Oldest — 1950 |
+| 19 | McLaren logo | #FF8000 | — | logo | 1966 |
+| 20 | Williams logo | #005AFF | — | logo | 1977 |
+| 21 | Red Bull logo | #1E41FF | — | logo | 2005 |
+| 22 | Mercedes logo | #00D2BE | #000000 | logo | 2010 works — black logo on teal |
+| 23 | Haas logo | #FFFFFF | #000000 | logo | 2016 — black logo on white |
+| 24 | Alpine logo | #FF87BC | #000000 | logo | 2021 — black logo on pink |
+| 25 | Aston Martin logo | #00A86B | — | logo | 2021 |
+| 26 | Racing Bulls logo | #6A0DAD | — | logo | 2024 |
+| 27 | Audi logo | #900000 | — | logo | 2026 |
+| 28 | Cadillac logo | #C8A951 | #000000 | logo | Newest — 2026 new entry, black logo on gold |
+| 29 | Thailand flag | — | — | flag | Future / proposed calendar addition |
+| 30 | Germany flag | — | — | flag | Off-calendar, possible return — Hockenheim / Nürburgring |
+| 31 | USA flag | — | — | flag | Las Vegas 2023 (Austin/Miami/Vegas) |
+| 32 | Saudi Arabia flag | — | — | flag | Jeddah — 2021 |
+| 33 | Qatar flag | — | — | flag | Lusail — 2021 |
+| 34 | Netherlands flag | — | — | flag | Zandvoort — 2021 return |
+| 35 | Azerbaijan flag | — | — | flag | Baku — 2016 |
+| 36 | Mexico flag | — | — | flag | Mexico City — 2015 return |
+| 37 | Austria flag | — | — | flag | Red Bull Ring — 2014 return |
+| 38 | UAE flag | — | — | flag | Abu Dhabi — 2009 |
+| 39 | Singapore flag | — | — | flag | Marina Bay — 2008 |
+| 40 | Bahrain flag | — | — | flag | Sakhir — 2004 |
+| 41 | China flag | — | — | flag | Shanghai — 2004 |
+| 42 | Australia flag | — | — | flag | Melbourne — 1996 |
+| 43 | Spain flag | — | — | flag | Barcelona — 1991 |
+| 44 | Japan flag | — | — | flag | Suzuka — 1987 |
+| 45 | Hungary flag | — | — | flag | Hungaroring — 1986 |
+| 46 | Canada flag | — | — | flag | Montreal — 1978 |
+| 47 | Brazil flag | — | — | flag | Interlagos — 1973 |
+| 48 | Belgium flag | — | — | flag | Spa — 1950 |
+| 49 | UK flag | — | — | flag | Silverstone — 1950 |
+| 50 | Italy flag | — | — | flag | Monza — 1950 |
+| 51 | Monaco flag | — | — | flag | Monte Carlo — oldest, 1950 |
 
 **Total: 8 colors + 10 numbers + 11 logos + 23 flags = 52**
 
