@@ -1,0 +1,2 @@
+file:///D:/Users/smitsro/Desktop/Projects/F1 Tower/simulator/flap-designer.html
+Start-Process "d:\Users\smitsro\Desktop\Projects\F1 Tower\simulator\flap-designer.html"

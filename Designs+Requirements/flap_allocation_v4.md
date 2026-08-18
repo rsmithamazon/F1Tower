@@ -210,12 +210,12 @@
 | 43 | Z | — | — | letter | |
 | 44 | - | — | — | text | Dash |
 | 45 | . | — | — | text | Period |
-| 46 | : | — | — | text | Colon |
+| 46 | ! | — | — | text | Exclamation |
 | 47 | ° | — | — | text | Degree symbol |
 | 48 | % | — | — | text | Percent |
 | 49 | + | — | — | text | Plus |
 | 50 | / | — | — | text | Slash |
-| 51 | ! | — | — | text | Exclamation |
+| 51 | : | — | — | text | Colon |
 
 **Total: 8 colors + 10 numbers + 26 letters + 8 symbols = 52**
 
@@ -230,12 +230,12 @@
 | 18–43 | A–Z | — | — | letter | Full alphabet |
 | 44 | - | — | — | text | Dash |
 | 45 | . | — | — | text | Period |
-| 46 | : | — | — | text | Colon |
+| 46 | ! | — | — | text | Exclamation |
 | 47 | ° | — | — | text | Degree symbol |
 | 48 | % | — | — | text | Percent |
 | 49 | + | — | — | text | Plus |
 | 50 | / | — | — | text | Slash |
-| 51 | ! | — | — | text | Exclamation |
+| 51 | : | — | — | text | Colon |
 
 **Total: 8 colors + 10 numbers + 26 letters + 8 symbols = 52**
 
@@ -250,7 +250,7 @@
 | 18–43 | A–Z | — | — | letter | Full alphabet |
 | 44 | - | — | — | text | Dash |
 | 45 | . | — | — | text | Period |
-| 46 | : | — | — | text | Colon |
+| 46 | ! | — | — | text | Colon |
 | 47 | ° | — | — | text | Degree symbol |
 | 48 | % | — | — | text | Percent |
 | 49 | + | — | — | text | Plus |
