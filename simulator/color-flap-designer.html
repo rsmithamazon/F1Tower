@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Split Flap — Color Designer</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: #1a1a1e; color: #e0e0e0;
+            display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding: 20px; }
+        h1 { font-size: 1.4rem; margin-bottom: 4px; color: #fff; }
+        .subtitle { font-size: 0.85rem; color: #888; margin-bottom: 16px; }
+        .controls { display: flex; gap: 12px; align-items: center; margin-bottom: 10px; flex-wrap: wrap; justify-content: center; max-width: 1100px; }
+        .controls label { font-size: 0.85rem; color: #aaa; }
+        .controls input[type="text"], .controls input[type="number"], .controls select {
+            background: #2a2a30; border: 1px solid #444; border-radius: 4px; padding: 5px 8px; color: #e0e0e0; }
+        .controls input[type="color"] { width: 36px; height: 30px; border: 1px solid #444; border-radius: 4px; background: #2a2a30; cursor: pointer; padding: 2px; }
+        .controls button { background: #DC0000; border: none; border-radius: 6px; padding: 8px 16px; color: #fff; font-weight: bold; cursor: pointer; font-size: 0.85rem; }
+        .controls button:hover { background: #ff2020; }
+        .controls button.secondary { background: #333; border: 1px solid #555; }
+        .controls button.secondary:hover { background: #444; }
+
+        .layout { display: flex; gap: 24px; align-items: flex-start; flex-wrap: wrap; justify-content: center; margin-top: 8px; }
+        .single-preview { text-align: center; }
+        .single-preview h3 { font-size: 0.85rem; color: #888; margin-bottom: 8px; }
+        .preview-canvas { border: 1px solid #444; border-radius: 4px; background: #000; }
+
+        table.rows { border-collapse: collapse; font-size: 0.85rem; }
+        table.rows th { color: #888; font-weight: normal; padding: 4px 8px; text-align: left; }
+        table.rows td { padding: 3px 6px; }
+        table.rows tr.sel { outline: 2px solid #DC0000; }
+        table.rows input[type="text"] { background: #2a2a30; border: 1px solid #444; border-radius: 4px; padding: 4px 6px; color: #e0e0e0; }
+        table.rows input[type="number"] { width: 52px; background: #2a2a30; border: 1px solid #444; border-radius: 4px; padding: 4px 6px; color: #e0e0e0; }
+        table.rows input[type="color"] { width: 34px; height: 28px; border: 1px solid #444; border-radius: 4px; background: #2a2a30; cursor: pointer; padding: 2px; }
+        .rowbtn { background: #333; border: 1px solid #555; border-radius: 4px; color: #e0e0e0; cursor: pointer; padding: 2px 8px; }
+        .swatch { width: 22px; height: 22px; border: 1px solid #555; border-radius: 3px; display: inline-block; vertical-align: middle; cursor: pointer; }
+
+        .status { margin-top: 14px; font-size: 0.82rem; color: #888; text-align: center; min-height: 1.2em; }
+        .status.ok { color: #4caf50; } .status.err { color: #DC0000; }
+        .instructions { margin-top: 12px; font-size: 0.78rem; color: #666; text-align: center; max-width: 760px; line-height: 1.5; }
+        code { background: #2a2a30; padding: 1px 5px; border-radius: 3px; }
+    </style>
+</head>
+<body>
+    <h1>Split Flap Color Designer</h1>
+    <p class="subtitle">Enter a hex per flap and export the same asset + flap-view pair as the other designers.</p>
+
+    <div class="controls">
+        <label>Flap W:</label><input type="number" id="flapWidth" value="430" min="50" max="2000" style="width:65px;">
+        <label>H:</label><input type="number" id="flapHeight" value="700" min="50" max="2000" style="width:65px;">
+        <label>Gap:</label><input type="number" id="splitGap" value="10" min="0" max="200" style="width:55px;">
+        <label title="Notch depth per side">Detent W:</label><input type="number" id="detentDepth" value="20" min="0" max="200" style="width:55px;">
+        <label title="Notch reach from center">Detent H:</label><input type="number" id="detentReach" value="180" min="0" max="2000" style="width:60px;">
+        <label>Quality:</label>
+        <select id="exportScale"><option value="1">1&times;</option><option value="2">2&times;</option><option value="4">4&times;</option><option value="8" selected>8&times;</option></select>
+    </div>
+
+    <div class="controls">
+        <label>Save to:</label>
+        <span id="saveModeLabel" style="font-size:0.8rem;color:#888;">Browser downloads</span>
+        <label>Subfolder:</label>
+        <input type="text" id="subfolder" value="Color Flaps" style="width:150px; font-family:monospace;">
+        <label title="Put each color in its own 'Flap NN Name' folder"><input type="checkbox" id="folderPerChar" checked style="accent-color:#DC0000; vertical-align:middle;"> Folder per color</label>
+        <button class="secondary" id="folderBtn">Choose Folder&hellip;</button>
+        <span id="folderName" style="font-size:0.8rem;color:#888;"></span>
+    </div>
+
+    <div class="controls">
+        <button id="exportAllBtn">Export All (assets + flap views, 8&times;)</button>
+        <button class="secondary" id="exportAssetsBtn">Assets only</button>
+        <button class="secondary" id="exportViewsBtn">Flap views only</button>
+        <button class="secondary" id="exportOneBtn">Export selected</button>
+    </div>
+
+    <div class="status" id="status">Ready.</div>
+
+    <div class="layout">
+        <div class="single-preview">
+            <h3>Selected: <span id="selName">Black</span> — Asset</h3>
+            <canvas class="preview-canvas" id="assetPreview" width="172" height="280"></canvas>
+        </div>
+        <div class="single-preview">
+            <h3>Flap View (white outline)</h3>
+            <canvas class="preview-canvas" id="viewPreview" width="172" height="280"></canvas>
+        </div>
+        <div>
+            <div class="controls" style="margin-bottom:8px;">
+                <button class="secondary" id="addRowBtn">+ Add color</button>
+                <button class="secondary" id="resetBaseBtn">Reset to base 8</button>
+            </div>
+            <table class="rows" id="rowsTable">
+                <thead><tr><th></th><th>Pos</th><th>Name</th><th>Hex</th><th></th><th></th></tr></thead>
+                <tbody id="rowsBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <p class="instructions">
+        <b>Assets</b> export as a flat full-bleed color rectangle. <b>Flap views</b> add the split gap, detent notch and a white leaf outline.<br>
+        Click a row (or its swatch) to preview it. Names/positions drive the file names (<code>Flap NN Name &hellip;</code>), matching the cut sheet.<br>
+        Run <code>python3 simulator/designer_server.py</code> and open at <code>http://localhost:8000/simulator/color-flap-designer.html</code> to save into the project; otherwise files download (or use <b>Choose Folder</b> in Chrome/Edge).
+    </p>
+
+    <script>
+        const $ = id => document.getElementById(id);
+        const flapWidthInput = $('flapWidth'), flapHeightInput = $('flapHeight'), splitGapInput = $('splitGap');
+        const detentDepthInput = $('detentDepth'), detentReachInput = $('detentReach'), exportScaleSel = $('exportScale');
+        const subfolderInput = $('subfolder'), folderPerCharInput = $('folderPerChar');
+        const folderBtn = $('folderBtn'), folderName = $('folderName'), saveModeLabel = $('saveModeLabel');
+        const statusEl = $('status'), assetPreview = $('assetPreview'), viewPreview = $('viewPreview'), selNameEl = $('selName');
+        const rowsBody = $('rowsBody');
+
+        const gW = () => parseInt(flapWidthInput.value) || 430;
+        const gH = () => parseInt(flapHeightInput.value) || 700;
+        const gGap = () => { const v = parseInt(splitGapInput.value); return isNaN(v) ? 10 : v; };
+        const gDepth = () => Math.max(0, parseInt(detentDepthInput.value) || 0);
+        const gReach = () => Math.max(0, parseInt(detentReachInput.value) || 0);
+        const gScale = () => parseInt(exportScaleSel.value) || 1;
+
+        // Base 8 colors (positions/hex from flap_allocation_v4.md)
+        const BASE = [
+            { pos: 0, name: 'Black',  hex: '#000000' },
+            { pos: 1, name: 'Red',    hex: '#DC0000' },
+            { pos: 2, name: 'Orange', hex: '#FF8000' },
+            { pos: 3, name: 'Yellow', hex: '#FFD700' },
+            { pos: 4, name: 'White',  hex: '#FFFFFF' },
+            { pos: 5, name: 'Green',  hex: '#00A86B' },
+            { pos: 6, name: 'Blue',   hex: '#1E41FF' },
+            { pos: 7, name: 'Purple', hex: '#6A0DAD' },
+        ];
+        let rows = BASE.map(r => ({ ...r }));
+        let selected = 0;
+
+        function labelFor(r) { return `Flap ${r.pos} ${r.name}`; }
+        function safeName(s) { return String(s).replace(/[\\/:*?"<>|]+/g, '_').trim(); }
+
+        // --- RENDER (flap coordinate space; ctx pre-scaled) ---
+        function renderAsset(ctx, fw, fh, hex) {
+            ctx.fillStyle = hex; ctx.fillRect(0, 0, fw, fh);
+        }
+        function traceLeaf(ctx, fw, fh, gap, depth, reach, which, i) {
+            const notch = depth > 0 && reach > 0;
+            ctx.beginPath();
+            if (which === 'top') {
+                const near = fh / 2 - gap / 2 - i, nY = Math.max(i, fh / 2 - reach);
+                ctx.moveTo(i, i); ctx.lineTo(fw - i, i);
+                if (notch && nY < near) { ctx.lineTo(fw - i, nY); ctx.lineTo(fw - depth - i, nY); ctx.lineTo(fw - depth - i, near); ctx.lineTo(depth + i, near); ctx.lineTo(depth + i, nY); ctx.lineTo(i, nY); }
+                else { ctx.lineTo(fw - i, near); ctx.lineTo(i, near); }
+            } else {
+                const near = fh / 2 + gap / 2 + i, nY = Math.min(fh - i, fh / 2 + reach);
+                ctx.moveTo(i, fh - i); ctx.lineTo(fw - i, fh - i);
+                if (notch && nY > near) { ctx.lineTo(fw - i, nY); ctx.lineTo(fw - depth - i, nY); ctx.lineTo(fw - depth - i, near); ctx.lineTo(depth + i, near); ctx.lineTo(depth + i, nY); ctx.lineTo(i, nY); }
+                else { ctx.lineTo(fw - i, near); ctx.lineTo(i, near); }
+            }
+            ctx.closePath();
+        }
+        function renderFlapView(ctx, fw, fh, hex) {
+            const gap = gGap(), depth = gDepth(), reach = gReach();
+            renderAsset(ctx, fw, fh, hex);
+            // gap + detent = removed material, shown dark so leaves read
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(0, fh / 2 - gap / 2, fw, gap);
+            if (depth > 0 && reach > 0) {
+                const ny0 = Math.max(0, fh / 2 - reach), ny1 = Math.min(fh, fh / 2 + reach);
+                ctx.fillRect(0, ny0, depth, ny1 - ny0);
+                ctx.fillRect(fw - depth, ny0, depth, ny1 - ny0);
+            }
+            const lw = Math.max(2, fw * 0.008);
+            ctx.strokeStyle = '#FFFFFF'; ctx.lineWidth = lw; ctx.lineJoin = 'miter';
+            traceLeaf(ctx, fw, fh, gap, depth, reach, 'top', lw / 2); ctx.stroke();
+            traceLeaf(ctx, fw, fh, gap, depth, reach, 'bottom', lw / 2); ctx.stroke();
+        }
+
+        function paint(canvas, hex, kind) {
+            const fw = gW(), fh = gH(), ctx = canvas.getContext('2d');
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.scale(canvas.width / fw, canvas.width / fw);
+            if (kind === 'view') renderFlapView(ctx, fw, fh, hex); else renderAsset(ctx, fw, fh, hex);
+        }
+
+        // --- ROWS TABLE ---
+        function buildRows() {
+            rowsBody.innerHTML = '';
+            rows.forEach((r, idx) => {
+                const tr = document.createElement('tr');
+                if (idx === selected) tr.className = 'sel';
+                const sw = `<span class="swatch" style="background:${r.hex}" data-i="${idx}"></span>`;
+                tr.innerHTML =
+                    `<td>${sw}</td>` +
+                    `<td><input type="number" data-i="${idx}" data-k="pos" value="${r.pos}"></td>` +
+                    `<td><input type="text" data-i="${idx}" data-k="name" value="${r.name}" style="width:110px;"></td>` +
+                    `<td><input type="color" data-i="${idx}" data-k="hex" value="${r.hex}"> <input type="text" data-i="${idx}" data-k="hextext" value="${r.hex}" style="width:80px; font-family:monospace;"></td>` +
+                    `<td><button class="rowbtn" data-sel="${idx}">edit</button></td>` +
+                    `<td><button class="rowbtn" data-del="${idx}">&times;</button></td>`;
+                rowsBody.appendChild(tr);
+            });
+            refreshPreviews();
+        }
+
+        rowsBody.addEventListener('input', (e) => {
+            const i = +e.target.dataset.i, k = e.target.dataset.k;
+            if (i == null || !k) return;
+            if (k === 'pos') rows[i].pos = parseInt(e.target.value) || 0;
+            else if (k === 'name') rows[i].name = e.target.value;
+            else if (k === 'hex') { rows[i].hex = e.target.value; buildRows(); }
+            else if (k === 'hextext') {
+                let v = e.target.value.trim(); if (!v.startsWith('#')) v = '#' + v;
+                if (/^#[0-9a-fA-F]{6}$/.test(v)) { rows[i].hex = v; buildRows(); }
+            }
+            if (i === selected) refreshPreviews();
+        });
+        rowsBody.addEventListener('click', (e) => {
+            if (e.target.dataset.del != null) { rows.splice(+e.target.dataset.del, 1); if (selected >= rows.length) selected = Math.max(0, rows.length - 1); buildRows(); }
+            else if (e.target.dataset.sel != null) { selected = +e.target.dataset.sel; buildRows(); }
+            else if (e.target.dataset.i != null && e.target.classList.contains('swatch')) { selected = +e.target.dataset.i; buildRows(); }
+        });
+
+        $('addRowBtn').addEventListener('click', () => { rows.push({ pos: rows.length, name: 'Color' + rows.length, hex: '#888888' }); selected = rows.length - 1; buildRows(); });
+        $('resetBaseBtn').addEventListener('click', () => { rows = BASE.map(r => ({ ...r })); selected = 0; buildRows(); });
+        [flapWidthInput, flapHeightInput, splitGapInput, detentDepthInput, detentReachInput].forEach(el => el.addEventListener('change', refreshPreviews));
+
+        function refreshPreviews() {
+            const r = rows[selected]; if (!r) return;
+            selNameEl.textContent = r.name;
+            const fw = gW(), fh = gH();
+            [assetPreview, viewPreview].forEach(cv => { cv.height = Math.round(cv.width * fh / fw); });
+            paint(assetPreview, r.hex, 'asset');
+            paint(viewPreview, r.hex, 'view');
+        }
+
+        // --- EXPORT DESTINATION (same approach as the other designers) ---
+        let exportDirHandle = null;
+        const fsAccessSupported = ('showDirectoryPicker' in window);
+        const IDB_NAME = 'flapDesigner', IDB_STORE = 'handles', IDB_KEY = 'colorExportDir';
+        function idbOpen() { return new Promise((res, rej) => { const r = indexedDB.open(IDB_NAME, 1); r.onupgradeneeded = () => r.result.createObjectStore(IDB_STORE); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); }); }
+        async function idbSet(k, v) { const db = await idbOpen(); return new Promise((res, rej) => { const t = db.transaction(IDB_STORE, 'readwrite'); t.objectStore(IDB_STORE).put(v, k); t.oncomplete = res; t.onerror = () => rej(t.error); }); }
+        async function idbGet(k) { const db = await idbOpen(); return new Promise((res, rej) => { const t = db.transaction(IDB_STORE, 'readonly'); const r = t.objectStore(IDB_STORE).get(k); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); }); }
+        async function ensurePermission(h) { const o = { mode: 'readwrite' }; if ((await h.queryPermission(o)) === 'granted') return true; return (await h.requestPermission(o)) === 'granted'; }
+
+        let backendAvailable = false;
+        async function probeBackend() { if (!/^https?:$/.test(location.protocol)) return; try { const r = await fetch('/save', { method: 'OPTIONS' }); backendAvailable = (r.status === 204 || r.ok); } catch (e) {} }
+        function updateSaveModeUI() {
+            if (backendAvailable) { saveModeLabel.textContent = 'Local server \u2192 static assets/'; saveModeLabel.style.color = '#4caf50'; folderBtn.style.display = 'none'; }
+            else if (fsAccessSupported) { saveModeLabel.textContent = 'Pick a folder \u2192'; saveModeLabel.style.color = '#888'; folderBtn.style.display = ''; }
+            else { saveModeLabel.textContent = 'Browser downloads'; folderBtn.style.display = 'none'; }
+        }
+        folderBtn.addEventListener('click', async () => { if (!fsAccessSupported) return; try { const h = await window.showDirectoryPicker({ id: 'colorFlapExport', mode: 'readwrite' }); exportDirHandle = h; folderName.textContent = 'Into: ' + h.name + '/'; try { await idbSet(IDB_KEY, h); } catch (e) {} } catch (e) {} });
+        (async () => { if (fsAccessSupported) { try { const h = await idbGet(IDB_KEY); if (h) { exportDirHandle = h; folderName.textContent = 'Into: ' + h.name + '/ (confirm on export)'; } } catch (e) {} } })();
+
+        function renderExportCanvas(hex, kind) {
+            const fw = gW(), fh = gH(), mult = gScale();
+            const cv = document.createElement('canvas'); cv.width = fw * mult; cv.height = fh * mult;
+            const ctx = cv.getContext('2d');
+            ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
+            ctx.scale(mult, mult);
+            if (kind === 'view') renderFlapView(ctx, fw, fh, hex); else renderAsset(ctx, fw, fh, hex);
+            return cv;
+        }
+        function relPathFor(r, kind) {
+            const label = `Flap ${r.pos} ${safeName(r.name)}`;
+            const file = `${label} ${kind === 'view' ? 'split_flap_view' : 'use_this_asset'}.png`;
+            const sub = (subfolderInput.value || '').trim().replace(/^\/+|\/+$/g, '');
+            const parts = [];
+            if (sub) parts.push(sub);
+            if (folderPerCharInput.checked) parts.push(label);
+            parts.push(file);
+            return parts.join('/');
+        }
+        async function saveCanvas(relPath, canvas) {
+            if (backendAvailable) {
+                const res = await fetch('/save', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ path: relPath, dataUrl: canvas.toDataURL('image/png') }) });
+                const j = await res.json(); if (!j.ok) throw new Error(j.error || 'server error'); return j.path;
+            }
+            const blob = await new Promise(r => canvas.toBlob(r, 'image/png'));
+            if (exportDirHandle) {
+                if (!(await ensurePermission(exportDirHandle))) throw new Error('permission denied');
+                const parts = relPath.split('/'); let dir = exportDirHandle;
+                for (let i = 0; i < parts.length - 1; i++) dir = await dir.getDirectoryHandle(parts[i], { create: true });
+                const fh = await dir.getFileHandle(parts[parts.length - 1], { create: true });
+                const w = await fh.createWritable(); await w.write(blob); await w.close();
+                return exportDirHandle.name + '/' + relPath;
+            }
+            const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.download = relPath.split('/').join('__'); a.href = url; a.click(); URL.revokeObjectURL(url); return a.download;
+        }
+        function setStatus(msg, cls) { statusEl.textContent = msg; statusEl.className = 'status' + (cls ? ' ' + cls : ''); }
+
+        async function exportSet(kinds, only) {
+            const list = only != null ? [rows[only]] : rows;
+            if (!list.length) { setStatus('No colors to export.', 'err'); return; }
+            let done = 0, total = list.length * kinds.length;
+            setStatus(`Exporting 0/${total}\u2026`);
+            try {
+                for (const r of list) for (const kind of kinds) {
+                    await saveCanvas(relPathFor(r, kind), renderExportCanvas(r.hex, kind));
+                    done++; if (done % 3 === 0 || done === total) setStatus(`Exporting ${done}/${total}\u2026`);
+                }
+                setStatus(`Done — exported ${total} file(s)${backendAvailable ? ' into static assets/' + (subfolderInput.value || '') : ''}.`, 'ok');
+            } catch (err) { setStatus('Export failed: ' + err.message, 'err'); }
+        }
+        $('exportAllBtn').addEventListener('click', () => exportSet(['asset', 'view']));
+        $('exportAssetsBtn').addEventListener('click', () => exportSet(['asset']));
+        $('exportViewsBtn').addEventListener('click', () => exportSet(['view']));
+        $('exportOneBtn').addEventListener('click', () => exportSet(['asset', 'view'], selected));
+
+        (async () => { await probeBackend(); updateSaveModeUI(); buildRows(); })();
+    </script>
+</body>
+</html>

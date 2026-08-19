@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Split Flap — Text &amp; Number Designer</title>
+    <style>
+        /* Each font file is registered as its own family for reliable OTF use. */
+        @font-face { font-family: 'Automata ExtraLight'; src: url('fonts/Automata-ExtraLight.otf') format('opentype'); }
+        @font-face { font-family: 'Automata Light';      src: url('fonts/Automata-Light.otf') format('opentype'); }
+        @font-face { font-family: 'Automata Regular';    src: url('fonts/Automata-Regular.otf') format('opentype'); }
+        @font-face { font-family: 'Automata SemiBold';   src: url('fonts/Automata-SemiBold.otf') format('opentype'); }
+        @font-face { font-family: 'Automata Bold';       src: url('fonts/Automata-Bold.otf') format('opentype'); }
+        @font-face { font-family: 'Automata Black';      src: url('fonts/Automata-Black.otf') format('opentype'); }
+        @font-face { font-family: 'Space Bold';          src: url('fonts/Space-Bold.otf') format('opentype'); }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: #1a1a1e; color: #e0e0e0;
+            display: flex; flex-direction: column; align-items: center;
+            min-height: 100vh; padding: 20px;
+        }
+        h1 { font-size: 1.4rem; margin-bottom: 4px; color: #fff; }
+        .subtitle { font-size: 0.85rem; color: #888; margin-bottom: 16px; }
+
+        .controls {
+            display: flex; gap: 12px; align-items: center; margin-bottom: 10px;
+            flex-wrap: wrap; justify-content: center; max-width: 1100px;
+        }
+        .controls label { font-size: 0.85rem; color: #aaa; }
+        .controls input[type="text"], .controls input[type="number"], .controls select {
+            background: #2a2a30; border: 1px solid #444; border-radius: 4px;
+            padding: 5px 8px; color: #e0e0e0;
+        }
+        .controls input[type="range"] { width: 150px; accent-color: #DC0000; }
+        .controls input[type="color"] {
+            width: 36px; height: 30px; border: 1px solid #444; border-radius: 4px;
+            background: #2a2a30; cursor: pointer; padding: 2px;
+        }
+        .controls button {
+            background: #DC0000; border: none; border-radius: 6px;
+            padding: 8px 16px; color: #fff; font-weight: bold; cursor: pointer; font-size: 0.85rem;
+        }
+        .controls button:hover { background: #ff2020; }
+        .controls button.secondary { background: #333; border: 1px solid #555; }
+        .controls button.secondary:hover { background: #444; }
+        .val { font-size: 0.85rem; color: #DC0000; min-width: 52px; text-align: center; }
+
+        .layout { display: flex; gap: 24px; align-items: flex-start; flex-wrap: wrap; justify-content: center; margin-top: 8px; }
+
+        .single-preview { text-align: center; }
+        .single-preview h3 { font-size: 0.85rem; color: #888; margin-bottom: 8px; }
+        .preview-canvas { border: 1px solid #444; border-radius: 4px; background: #000; }
+
+        .grid-wrap { max-width: 720px; }
+        .grid-wrap h3 { font-size: 0.85rem; color: #888; margin-bottom: 8px; text-align: center; }
+        .char-grid { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
+        .char-cell {
+            position: relative; border: 1px solid #333; border-radius: 3px; cursor: pointer;
+            background: #000;
+        }
+        .char-cell.active { outline: 2px solid #DC0000; }
+        .char-cell canvas { display: block; }
+
+        .status { margin-top: 14px; font-size: 0.82rem; color: #888; text-align: center; min-height: 1.2em; }
+        .status.ok { color: #4caf50; }
+        .status.err { color: #DC0000; }
+        .instructions { margin-top: 12px; font-size: 0.78rem; color: #666; text-align: center; max-width: 760px; line-height: 1.5; }
+        code { background: #2a2a30; padding: 1px 5px; border-radius: 3px; }
+    </style>
+</head>
+<body>
+    <h1>Split Flap Text &amp; Number Designer</h1>
+    <p class="subtitle">Mass-edit every letter, number and symbol with one font/style, then export all flaps at 8&times; plus flap-view outlines.</p>
+
+    <div class="controls">
+        <label>Characters:</label>
+        <input type="text" id="charset" value="0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ-.:&deg;%+/!" style="width:420px; font-family:monospace;">
+    </div>
+
+    <div class="controls">
+        <label title="Whole strings rendered on one flap (e.g. mph). Comma or space separated. Auto-fit to width.">Multi-char flaps:</label>
+        <input type="text" id="multiTokens" value="mph, kph" style="width:300px; font-family:monospace;">
+        <span style="font-size:0.75rem; color:#666;">comma/space separated &middot; auto-shrinks to fit</span>
+    </div>
+
+    <div class="controls">
+        <label>Font:</label>
+        <select id="fontSelect">
+            <option value="Space Bold">Space Bold</option>
+            <option value="Automata Black">Automata Black</option>
+            <option value="Automata Bold" selected>Automata Bold</option>
+            <option value="Automata SemiBold">Automata SemiBold</option>
+            <option value="Automata Regular">Automata Regular</option>
+            <option value="Automata Light">Automata Light</option>
+            <option value="Automata ExtraLight">Automata ExtraLight</option>
+        </select>
+        <label>Size:</label>
+        <input type="range" id="sizeSlider" min="10" max="120" value="55">
+        <span class="val" id="sizeVal">55%</span>
+        <label>Text:</label>
+        <input type="color" id="fgColor" value="#FFFFFF">
+        <label>BG:</label>
+        <input type="color" id="bgColor" value="#000000">
+    </div>
+
+    <div class="controls">
+        <label>Nudge X:</label>
+        <input type="range" id="nudgeX" min="-100" max="100" value="0">
+        <label>Y:</label>
+        <input type="range" id="nudgeY" min="-100" max="100" value="0">
+        <span class="val" id="nudgeVal">0, 0</span>
+        <button class="secondary" id="resetNudge">Reset Nudge</button>
+    </div>
+
+    <div class="controls">
+        <label>Flap W:</label>
+        <input type="number" id="flapWidth" value="430" min="50" max="2000" style="width:65px;">
+        <label>H:</label>
+        <input type="number" id="flapHeight" value="700" min="50" max="2000" style="width:65px;">
+        <label>Gap:</label>
+        <input type="number" id="splitGap" value="10" min="0" max="200" style="width:55px;">
+        <label title="Notch depth cut in from each side near the split">Detent W:</label>
+        <input type="number" id="detentDepth" value="20" min="0" max="200" style="width:55px;">
+        <label title="How far the notch reaches above and below the center line">Detent H:</label>
+        <input type="number" id="detentReach" value="180" min="0" max="2000" style="width:60px;">
+        <label>Quality:</label>
+        <select id="exportScale">
+            <option value="1">1&times;</option>
+            <option value="2">2&times;</option>
+            <option value="4">4&times;</option>
+            <option value="8" selected>8&times;</option>
+        </select>
+    </div>
+
+    <div class="controls">
+        <label>Save to:</label>
+        <span id="saveModeLabel" style="font-size:0.8rem;color:#888;">Browser downloads</span>
+        <label>Subfolder:</label>
+        <input type="text" id="subfolder" value="Text Flaps" style="width:150px; font-family:monospace;">
+        <label title="Put each character in its own 'Flap NN X' folder like the cut sheet"><input type="checkbox" id="folderPerChar" checked style="accent-color:#DC0000; vertical-align:middle;"> Folder per char</label>
+        <button class="secondary" id="folderBtn">Choose Folder&hellip;</button>
+        <span id="folderName" style="font-size:0.8rem;color:#888;"></span>
+    </div>
+
+    <div class="controls">
+        <button id="exportAllBtn">Export All (assets + flap views, 8&times;)</button>
+        <button class="secondary" id="exportAssetsBtn">Assets only</button>
+        <button class="secondary" id="exportViewsBtn">Flap views only</button>
+        <button class="secondary" id="exportOneBtn">Export selected char</button>
+    </div>
+
+    <div class="status" id="status">Loading fonts&hellip;</div>
+
+    <div class="layout">
+        <div class="single-preview">
+            <h3>Selected: <span id="selChar">A</span> — Asset</h3>
+            <canvas class="preview-canvas" id="assetPreview" width="172" height="280"></canvas>
+        </div>
+        <div class="single-preview">
+            <h3>Flap View (white outline)</h3>
+            <canvas class="preview-canvas" id="viewPreview" width="172" height="280"></canvas>
+        </div>
+        <div class="grid-wrap">
+            <h3>All characters (click to select)</h3>
+            <div class="char-grid" id="charGrid"></div>
+        </div>
+    </div>
+
+    <p class="instructions">
+        <b>Mass editor:</b> the font, size, colors and nudge apply to every character at once. Click a grid cell to preview it larger.<br>
+        <b>Assets</b> export as full-bleed rectangles (no gap) at the chosen quality. <b>Flap views</b> add the split gap and a white outline around each leaf.<br>
+        To save straight into the project, run <code>python3 simulator/designer_server.py</code> and open this at <code>http://localhost:8000/simulator/text-flap-designer.html</code>. Otherwise files download (or use <b>Choose Folder</b> in Chrome/Edge).
+    </p>
+
+    <script>
+        const $ = id => document.getElementById(id);
+        const charsetInput = $('charset');
+        const multiTokensInput = $('multiTokens');
+        const fontSelect = $('fontSelect');
+        const sizeSlider = $('sizeSlider'), sizeVal = $('sizeVal');
+        const fgColor = $('fgColor'), bgColor = $('bgColor');
+        const nudgeX = $('nudgeX'), nudgeY = $('nudgeY'), nudgeVal = $('nudgeVal');
+        const flapWidthInput = $('flapWidth'), flapHeightInput = $('flapHeight'), splitGapInput = $('splitGap');
+        const detentDepthInput = $('detentDepth'), detentReachInput = $('detentReach');
+        const exportScaleSel = $('exportScale');
+        const subfolderInput = $('subfolder'), folderPerCharInput = $('folderPerChar');
+        const folderBtn = $('folderBtn'), folderName = $('folderName'), saveModeLabel = $('saveModeLabel');
+        const statusEl = $('status');
+        const assetPreview = $('assetPreview'), viewPreview = $('viewPreview');
+        const selCharEl = $('selChar'), charGrid = $('charGrid');
+
+        let selectedChar = 'A';
+
+        // --- STATE GETTERS ---
+        const gW = () => parseInt(flapWidthInput.value) || 430;
+        const gH = () => parseInt(flapHeightInput.value) || 700;
+        const gGap = () => { const v = parseInt(splitGapInput.value); return isNaN(v) ? 10 : v; };
+        const gDepth = () => Math.max(0, parseInt(detentDepthInput.value) || 0);
+        const gReach = () => Math.max(0, parseInt(detentReachInput.value) || 0);
+        const gFont = () => fontSelect.value;
+        const gSizePct = () => parseInt(sizeSlider.value) || 55;
+        const gFg = () => fgColor.value;
+        const gBg = () => bgColor.value;
+        const gNudgeX = () => parseInt(nudgeX.value) || 0;
+        const gNudgeY = () => parseInt(nudgeY.value) || 0;
+        const gScale = () => parseInt(exportScaleSel.value) || 1;
+        // Single characters, plus multi-character tokens (e.g. "mph"), each = one flap.
+        const singles = () => Array.from(charsetInput.value);
+        const tokens = () => (multiTokensInput.value || '').split(/[,\s]+/).map(t => t.trim()).filter(Boolean);
+        const items = () => singles().concat(tokens());
+
+        // --- POSITION + SAFE-NAME MAPS (Col 2/3 basis) ---
+        const SAFE = { '-': 'dash', '.': 'period', ':': 'colon', '\u00B0': 'degree',
+            '%': 'percent', '+': 'plus', '/': 'slash', '!': 'exclamation', ' ': 'space' };
+        const TOKEN_POS = { 'mph': 50, 'kph': 51 }; // Col 4 small-text unit labels
+        function safeName(s) {
+            if (s.length === 1) return SAFE[s] || s;
+            return s.replace(/[\\/:*?"<>|]+/g, '_'); // multi-char token: keep as-is, sanitize
+        }
+        function posOf(s) {
+            if (TOKEN_POS[s] !== undefined) return TOKEN_POS[s];
+            if (s.length !== 1) return null;
+            if (s >= '0' && s <= '9') return 8 + (s.charCodeAt(0) - 48);
+            if (s >= 'A' && s <= 'Z') return 18 + (s.charCodeAt(0) - 65);
+            const sym = { '-': 44, '.': 45, ':': 46, '\u00B0': 47, '%': 48, '+': 49, '/': 50, '!': 51 };
+            return sym[s] !== undefined ? sym[s] : null;
+        }
+        function labelFor(ch) {
+            const p = posOf(ch), s = safeName(ch);
+            return p !== null ? `Flap ${p} ${s}` : s;
+        }
+
+        // --- RENDER (in flap coordinate space; ctx is pre-scaled by caller) ---
+        function renderAsset(ctx, fw, fh, ch) {
+            ctx.fillStyle = gBg(); ctx.fillRect(0, 0, fw, fh);
+            ctx.fillStyle = gFg();
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            let px = fh * gSizePct() / 100;
+            ctx.font = `${px}px "${gFont()}"`;
+            // Auto-fit width so multi-character strings (e.g. "mph") stay inside the flap.
+            const maxW = fw * 0.90;
+            const w = ctx.measureText(ch).width;
+            if (w > maxW && w > 0) {
+                px = px * maxW / w;
+                ctx.font = `${px}px "${gFont()}"`;
+            }
+            ctx.fillText(ch, fw / 2 + gNudgeX(), fh / 2 + gNudgeY());
+        }
+
+        // Outline path for one notched leaf (matches the flap-designer detent:
+        // the flap narrows near the split, so the edges are "missing" there).
+        function traceLeaf(ctx, fw, fh, gap, depth, reach, which, i) {
+            const notch = depth > 0 && reach > 0;
+            ctx.beginPath();
+            if (which === 'top') {
+                const near = fh / 2 - gap / 2 - i;                 // edge nearest the split
+                const nY = Math.max(i, fh / 2 - reach);            // where the notch begins
+                ctx.moveTo(i, i);
+                ctx.lineTo(fw - i, i);
+                if (notch && nY < near) {
+                    ctx.lineTo(fw - i, nY);
+                    ctx.lineTo(fw - depth - i, nY);
+                    ctx.lineTo(fw - depth - i, near);
+                    ctx.lineTo(depth + i, near);
+                    ctx.lineTo(depth + i, nY);
+                    ctx.lineTo(i, nY);
+                } else {
+                    ctx.lineTo(fw - i, near);
+                    ctx.lineTo(i, near);
+                }
+            } else {
+                const near = fh / 2 + gap / 2 + i;                 // edge nearest the split
+                const nY = Math.min(fh - i, fh / 2 + reach);       // where the notch ends
+                ctx.moveTo(i, fh - i);
+                ctx.lineTo(fw - i, fh - i);
+                if (notch && nY > near) {
+                    ctx.lineTo(fw - i, nY);
+                    ctx.lineTo(fw - depth - i, nY);
+                    ctx.lineTo(fw - depth - i, near);
+                    ctx.lineTo(depth + i, near);
+                    ctx.lineTo(depth + i, nY);
+                    ctx.lineTo(i, nY);
+                } else {
+                    ctx.lineTo(fw - i, near);
+                    ctx.lineTo(i, near);
+                }
+            }
+            ctx.closePath();
+        }
+
+        function renderFlapView(ctx, fw, fh, ch) {
+            const gap = gGap(), depth = gDepth(), reach = gReach();
+            renderAsset(ctx, fw, fh, ch);
+
+            // gap band = physical split line
+            ctx.fillStyle = gBg();
+            ctx.fillRect(0, fh / 2 - gap / 2, fw, gap);
+
+            // detent: cut the edge material away near the split (edges missing)
+            if (depth > 0 && reach > 0) {
+                const ny0 = Math.max(0, fh / 2 - reach);
+                const ny1 = Math.min(fh, fh / 2 + reach);
+                ctx.fillStyle = gBg();
+                ctx.fillRect(0, ny0, depth, ny1 - ny0);
+                ctx.fillRect(fw - depth, ny0, depth, ny1 - ny0);
+            }
+
+            // white outline following the notched leaf profile
+            const lw = Math.max(2, fw * 0.008);
+            ctx.strokeStyle = '#FFFFFF';
+            ctx.lineWidth = lw;
+            ctx.lineJoin = 'miter';
+            traceLeaf(ctx, fw, fh, gap, depth, reach, 'top', lw / 2); ctx.stroke();
+            traceLeaf(ctx, fw, fh, gap, depth, reach, 'bottom', lw / 2); ctx.stroke();
+        }
+
+        // Draw a character into a target canvas sized to the flap aspect ratio.
+        function paint(canvas, ch, kind) {
+            const fw = gW(), fh = gH();
+            const ctx = canvas.getContext('2d');
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const s = canvas.width / fw;
+            ctx.scale(s, s);
+            if (kind === 'view') renderFlapView(ctx, fw, fh, ch);
+            else renderAsset(ctx, fw, fh, ch);
+        }
+
+        // --- GRID ---
+        function buildGrid() {
+            charGrid.innerHTML = '';
+            const fw = gW(), fh = gH();
+            const cellW = 46, cellH = Math.round(cellW * fh / fw);
+            items().forEach(ch => {
+                const cell = document.createElement('div');
+                cell.className = 'char-cell' + (ch === selectedChar ? ' active' : '');
+                const cv = document.createElement('canvas');
+                cv.width = cellW; cv.height = cellH;
+                cell.appendChild(cv);
+                cell.title = ch + '  (' + labelFor(ch) + ')';
+                cell.addEventListener('click', () => { selectedChar = ch; refresh(); });
+                charGrid.appendChild(cell);
+                paint(cv, ch, 'asset');
+            });
+        }
+
+        function refreshGridCells() {
+            const cells = charGrid.querySelectorAll('.char-cell');
+            const cs = items();
+            cells.forEach((cell, i) => {
+                cell.classList.toggle('active', cs[i] === selectedChar);
+                paint(cell.querySelector('canvas'), cs[i], 'asset');
+            });
+        }
+
+        function refreshPreviews() {
+            selCharEl.textContent = selectedChar;
+            // size preview canvases to flap aspect
+            const fw = gW(), fh = gH();
+            [assetPreview, viewPreview].forEach(cv => { cv.height = Math.round(cv.width * fh / fw); });
+            paint(assetPreview, selectedChar, 'asset');
+            paint(viewPreview, selectedChar, 'view');
+        }
+
+        function refresh() {
+            sizeVal.textContent = gSizePct() + '%';
+            nudgeVal.textContent = gNudgeX() + ', ' + gNudgeY();
+            refreshPreviews();
+            refreshGridCells();
+        }
+
+        function rebuild() { sizeVal.textContent = gSizePct() + '%'; buildGrid(); refreshPreviews(); }
+
+        // --- CONTROL WIRING ---
+        function onSetChange() {
+            if (!items().includes(selectedChar)) selectedChar = items()[0] || 'A';
+            rebuild();
+        }
+        charsetInput.addEventListener('input', onSetChange);
+        multiTokensInput.addEventListener('input', onSetChange);
+        fontSelect.addEventListener('change', async () => { await ensureFont(gFont()); rebuild(); });
+        [sizeSlider, nudgeX, nudgeY].forEach(el => el.addEventListener('input', refresh));
+        [fgColor, bgColor].forEach(el => el.addEventListener('input', refresh));
+        [flapWidthInput, flapHeightInput, splitGapInput, detentDepthInput, detentReachInput].forEach(el => el.addEventListener('change', rebuild));
+        $('resetNudge').addEventListener('click', () => { nudgeX.value = 0; nudgeY.value = 0; refresh(); });
+
+        // --- FONT LOADING ---
+        async function ensureFont(family) {
+            try {
+                await document.fonts.load(`64px "${family}"`, 'ABC0123');
+                await document.fonts.ready;
+            } catch (e) { /* ignore */ }
+        }
+
+        // --- EXPORT DESTINATION (shared with artwork designer approach) ---
+        let exportDirHandle = null;
+        const fsAccessSupported = ('showDirectoryPicker' in window);
+        const IDB_NAME = 'flapDesigner', IDB_STORE = 'handles', IDB_KEY = 'textExportDir';
+        function idbOpen() { return new Promise((res, rej) => { const r = indexedDB.open(IDB_NAME, 1); r.onupgradeneeded = () => r.result.createObjectStore(IDB_STORE); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); }); }
+        async function idbSet(k, v) { const db = await idbOpen(); return new Promise((res, rej) => { const t = db.transaction(IDB_STORE, 'readwrite'); t.objectStore(IDB_STORE).put(v, k); t.oncomplete = res; t.onerror = () => rej(t.error); }); }
+        async function idbGet(k) { const db = await idbOpen(); return new Promise((res, rej) => { const t = db.transaction(IDB_STORE, 'readonly'); const r = t.objectStore(IDB_STORE).get(k); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); }); }
+        async function ensurePermission(h) { const o = { mode: 'readwrite' }; if ((await h.queryPermission(o)) === 'granted') return true; return (await h.requestPermission(o)) === 'granted'; }
+
+        let backendAvailable = false;
+        async function probeBackend() {
+            if (!/^https?:$/.test(location.protocol)) return;
+            try { const r = await fetch('/save', { method: 'OPTIONS' }); backendAvailable = (r.status === 204 || r.ok); } catch (e) { backendAvailable = false; }
+        }
+        function updateSaveModeUI() {
+            if (backendAvailable) { saveModeLabel.textContent = 'Local server \u2192 static assets/'; saveModeLabel.style.color = '#4caf50'; folderBtn.style.display = 'none'; }
+            else if (fsAccessSupported) { saveModeLabel.textContent = 'Pick a folder \u2192'; saveModeLabel.style.color = '#888'; folderBtn.style.display = ''; }
+            else { saveModeLabel.textContent = 'Browser downloads'; saveModeLabel.style.color = '#888'; folderBtn.style.display = 'none'; }
+        }
+        folderBtn.addEventListener('click', async () => {
+            if (!fsAccessSupported) return;
+            try { const h = await window.showDirectoryPicker({ id: 'textFlapExport', mode: 'readwrite' }); exportDirHandle = h; folderName.textContent = 'Into: ' + h.name + '/'; try { await idbSet(IDB_KEY, h); } catch (e) {} } catch (e) {}
+        });
+        (async () => { if (fsAccessSupported) { try { const h = await idbGet(IDB_KEY); if (h) { exportDirHandle = h; folderName.textContent = 'Into: ' + h.name + '/ (confirm on export)'; } } catch (e) {} } })();
+
+        function renderExportCanvas(ch, kind) {
+            const fw = gW(), fh = gH(), mult = gScale();
+            const cv = document.createElement('canvas');
+            cv.width = fw * mult; cv.height = fh * mult;
+            const ctx = cv.getContext('2d');
+            ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
+            ctx.scale(mult, mult);
+            if (kind === 'view') renderFlapView(ctx, fw, fh, ch);
+            else renderAsset(ctx, fw, fh, ch);
+            return cv;
+        }
+
+        function relPathFor(ch, kind) {
+            const label = labelFor(ch);
+            const file = `${label} ${kind === 'view' ? 'split_flap_view' : 'use_this_asset'}.png`;
+            const sub = (subfolderInput.value || '').trim().replace(/^\/+|\/+$/g, '');
+            const parts = [];
+            if (sub) parts.push(sub);
+            if (folderPerCharInput.checked) parts.push(label);
+            parts.push(file);
+            return parts.join('/');
+        }
+
+        async function saveCanvas(relPath, canvas) {
+            if (backendAvailable) {
+                const res = await fetch('/save', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ path: relPath, dataUrl: canvas.toDataURL('image/png') }) });
+                const j = await res.json();
+                if (!j.ok) throw new Error(j.error || 'server error');
+                return j.path;
+            }
+            const blob = await new Promise(r => canvas.toBlob(r, 'image/png'));
+            if (exportDirHandle) {
+                if (!(await ensurePermission(exportDirHandle))) throw new Error('permission denied');
+                const parts = relPath.split('/');
+                let dir = exportDirHandle;
+                for (let i = 0; i < parts.length - 1; i++) dir = await dir.getDirectoryHandle(parts[i], { create: true });
+                const fh = await dir.getFileHandle(parts[parts.length - 1], { create: true });
+                const w = await fh.createWritable(); await w.write(blob); await w.close();
+                return exportDirHandle.name + '/' + relPath;
+            }
+            // download (folders can't be created; use flattened filename)
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.download = relPath.split('/').join('__');
+            a.href = url; a.click(); URL.revokeObjectURL(url);
+            return a.download;
+        }
+
+        function setStatus(msg, cls) { statusEl.textContent = msg; statusEl.className = 'status' + (cls ? ' ' + cls : ''); }
+
+        async function exportSet(kinds) {
+            const cs = items();
+            if (!cs.length) { setStatus('No characters to export.', 'err'); return; }
+            await ensureFont(gFont());
+            let done = 0, total = cs.length * kinds.length;
+            setStatus(`Exporting 0/${total}\u2026`);
+            try {
+                for (const ch of cs) {
+                    for (const kind of kinds) {
+                        const cv = renderExportCanvas(ch, kind);
+                        await saveCanvas(relPathFor(ch, kind), cv);
+                        done++;
+                        if (done % 4 === 0 || done === total) setStatus(`Exporting ${done}/${total}\u2026`);
+                    }
+                }
+                setStatus(`Done — exported ${total} file(s)${backendAvailable ? ' into static assets/' + (subfolderInput.value || '') : ''}.`, 'ok');
+            } catch (err) {
+                setStatus('Export failed: ' + err.message, 'err');
+            }
+        }
+
+        $('exportAllBtn').addEventListener('click', () => exportSet(['asset', 'view']));
+        $('exportAssetsBtn').addEventListener('click', () => exportSet(['asset']));
+        $('exportViewsBtn').addEventListener('click', () => exportSet(['view']));
+        $('exportOneBtn').addEventListener('click', async () => {
+            await ensureFont(gFont());
+            try {
+                await saveCanvas(relPathFor(selectedChar, 'asset'), renderExportCanvas(selectedChar, 'asset'));
+                await saveCanvas(relPathFor(selectedChar, 'view'), renderExportCanvas(selectedChar, 'view'));
+                setStatus(`Exported '${selectedChar}' (asset + flap view).`, 'ok');
+            } catch (err) { setStatus('Export failed: ' + err.message, 'err'); }
+        });
+
+        // --- INIT ---
+        (async () => {
+            await probeBackend();
+            updateSaveModeUI();
+            await ensureFont(gFont());
+            selectedChar = items()[0] || 'A';
+            rebuild();
+            setStatus('Ready.', 'ok');
+        })();
+    </script>
+</body>
+</html>

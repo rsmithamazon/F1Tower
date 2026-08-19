@@ -31,13 +31,13 @@
 | Pos | Content | BG | Notes |
 |-----|---------|----|----|
 | 0 | Black (blank) | — | Home position |
-| 1 | Red | #DC0000 | Ferrari, red flag, soft |
+| 1 | Red | #e40810 | Ferrari, red flag, soft |
 | 2 | Orange | #FF8000 | McLaren |
-| 3 | Yellow | #FFD700 | Yellow flag, SC, medium |
+| 3 | Yellow | #ffd032 | Yellow flag, SC, medium |
 | 4 | White | #FFFFFF | Hard, Haas |
-| 5 | Green | #00A86B | Aston Martin, green flag, inter, sector PB |
-| 6 | Blue | #1E41FF | Red Bull, blue flag, wet |
-| 7 | Purple | #6A0DAD | Racing Bulls, sector best, FL |
+| 5 | Green | #04c009 | Aston Martin, green flag, inter, sector PB |
+| 6 | Blue | #011cd2 | Red Bull, blue flag, wet |
+| 7 | Purple | #b204b3 | Racing Bulls, sector best, FL |
 | 8 | 0 | — | |
 | 9 | 1 | — | |
 | 10 | 2 | — | |
@@ -59,13 +59,13 @@
 | Pos | Content | BG | FG | Type | Notes |
 |-----|---------|----|----|------|-------|
 | 0 | Black | — | — | solid | Home |
-| 1 | Red | #DC0000 | — | solid | |
+| 1 | Red | #e40810 | — | solid | |
 | 2 | Orange | #FF8000 | — | solid | |
-| 3 | Yellow | #FFD700 | — | solid | |
+| 3 | Yellow | #ffd032 | — | solid | |
 | 4 | White | #FFFFFF | — | solid | |
-| 5 | Green | #00A86B | — | solid | |
-| 6 | Blue | #1E41FF | — | solid | |
-| 7 | Purple | #6A0DAD | — | solid | |
+| 5 | Green | #04c009 | — | solid | |
+| 6 | Blue | #011cd2 | — | solid | |
+| 7 | Purple | #b204b3 | — | solid | |
 | 8 | 0 | — | — | digit | |
 | 9 | 1 | — | — | digit | |
 | 10 | 2 | — | — | digit | |
@@ -76,17 +76,17 @@
 | 15 | 7 | — | — | digit | |
 | 16 | 8 | — | — | digit | |
 | 17 | 9 | — | — | digit | |
-| 18 | Ferrari logo | #DC0000 | — | logo | Oldest — 1950 |
-| 19 | McLaren logo | #FF8000 | — | logo | 1966 |
-| 20 | Williams logo | #005AFF | — | logo | 1977 |
-| 21 | Red Bull logo | #1E41FF | — | logo | 2005 |
-| 22 | Mercedes logo | #00D2BE | #000000 | logo | 2010 works — black logo on teal |
-| 23 | Haas logo | #FFFFFF | #000000 | logo | 2016 — black logo on white |
-| 24 | Alpine logo | #FF87BC | #000000 | logo | 2021 — black logo on pink |
-| 25 | Aston Martin logo | #00A86B | — | logo | 2021 |
-| 26 | Racing Bulls logo | #6A0DAD | — | logo | 2024 |
-| 27 | Audi logo | #900000 | — | logo | 2026 |
-| 28 | Cadillac logo | #C8A951 | #000000 | logo | Newest — 2026 new entry, black logo on gold |
+| 18 | Ferrari logo |  | — | logo | Oldest — 1950 |
+| 19 | McLaren logo |  | — | logo | 1966 |
+| 20 | Williams logo | | — | logo | 1977 |
+| 21 | Red Bull logo | | — | logo | 2005 |
+| 22 | Mercedes logo | | | logo | 2010 works — black logo on teal |
+| 23 | Haas logo | |  | logo | 2016 — black logo on white |
+| 24 | Alpine logo |  | | logo | 2021 — black logo on pink |
+| 25 | Aston Martin logo |  | — | logo | 2021 |
+| 26 | Racing Bulls logo | | — | logo | 2024 |
+| 27 | Audi logo |  | — | logo | 2026 |
+| 28 | Cadillac logo | |  | logo | Newest — 2026 new entry, black logo on gold |
 | 29 | Thailand flag | — | — | flag | Future / proposed calendar addition |
 | 30 | Germany flag | — | — | flag | Off-calendar, possible return — Hockenheim / Nürburgring |
 | 31 | USA flag | — | — | flag | Las Vegas 2023 (Austin/Miami/Vegas) |
@@ -120,13 +120,13 @@
 | Pos | Content | BG | FG | Type | Notes |
 |-----|---------|----|----|------|-------|
 | 0 | Black | — | — | solid | Home |
-| 1 | Red | #DC0000 | — | solid | |
+| 1 | Red | #e40810 | — | solid | |
 | 2 | Orange | #FF8000 | — | solid | |
-| 3 | Yellow | #FFD700 | — | solid | |
+| 3 | Yellow | #ffd032 | — | solid | |
 | 4 | White | #FFFFFF | — | solid | |
-| 5 | Green | #00A86B | — | solid | |
-| 6 | Blue | #1E41FF | — | solid | |
-| 7 | Purple | #6A0DAD | — | solid | |
+| 5 | Green | #04c009 | — | solid | |
+| 6 | Blue | #011cd2 | — | solid | |
+| 7 | Purple | #b204b3 | — | solid | |
 | 8 | 0 | — | — | digit | |
 | 9 | 1 | — | — | digit | |
 | 10 | 2 | — | — | digit | |
