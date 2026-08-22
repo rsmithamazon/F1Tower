@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Split Flap — Card Sheet Generator</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: #1a1a1e; color: #e0e0e0;
+            display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding: 20px; }
+        h1 { font-size: 1.4rem; margin-bottom: 4px; color: #fff; }
+        .subtitle { font-size: 0.85rem; color: #888; margin-bottom: 16px; max-width: 760px; text-align: center; }
+        .controls { display: flex; gap: 12px; align-items: center; margin-bottom: 10px; flex-wrap: wrap; justify-content: center; max-width: 1100px; }
+        .controls label { font-size: 0.85rem; color: #aaa; }
+        .controls input[type="text"], .controls input[type="number"], .controls select {
+            background: #2a2a30; border: 1px solid #444; border-radius: 4px; padding: 5px 8px; color: #e0e0e0; }
+        .controls input[type="file"] { background: #2a2a30; border: 1px solid #444; border-radius: 6px; padding: 6px 12px; color: #e0e0e0; cursor: pointer; }
+        .controls input[type="color"] { width: 36px; height: 30px; border: 1px solid #444; border-radius: 4px; background: #2a2a30; cursor: pointer; padding: 2px; }
+        .controls button { background: #DC0000; border: none; border-radius: 6px; padding: 8px 16px; color: #fff; font-weight: bold; cursor: pointer; font-size: 0.85rem; }
+        .controls button:hover { background: #ff2020; }
+        .controls button.secondary { background: #333; border: 1px solid #555; }
+        .controls button.secondary:hover { background: #444; }
+        .status { margin: 10px 0; font-size: 0.82rem; color: #888; text-align: center; min-height: 1.2em; }
+        .status.ok { color: #4caf50; } .status.err { color: #DC0000; }
+        .sheet-wrap { border: 1px solid #333; border-radius: 6px; overflow: auto; max-width: 100%; max-height: 78vh; background: #fff; }
+        canvas#sheet { display: block; }
+        .instructions { margin-top: 12px; font-size: 0.78rem; color: #666; text-align: center; max-width: 780px; line-height: 1.5; }
+        code { background: #2a2a30; padding: 1px 5px; border-radius: 3px; }
+    </style>
+</head>
+<body>
+    <h1>Split Flap Card Sheet Generator</h1>
+    <p class="subtitle">Load a column folder of <code>use_this_asset</code> images. Each card keeps one character's pair together: its Top half and Bottom half side by side, no gap. 5 cards per row. Flap 0 is the wrap outlier.</p>
+
+    <div class="controls">
+        <label>Column folder:</label>
+        <input type="file" id="dirInput" webkitdirectory directory multiple>
+        <button class="secondary" id="filesBtn">or pick files&hellip;</button>
+        <input type="file" id="filesInput" accept="image/png" multiple style="display:none;">
+    </div>
+
+    <div class="controls">
+        <label>Flap W:</label><input type="number" id="flapWidth" value="430" min="50" max="2000" style="width:65px;">
+        <label>H:</label><input type="number" id="flapHeight" value="700" min="50" max="2000" style="width:65px;">
+        <label title="Notch depth per side">Detent W:</label><input type="number" id="detentDepth" value="20" min="0" max="200" style="width:55px;">
+        <label title="Notch reach from center">Detent H:</label><input type="number" id="detentReach" value="180" min="0" max="2000" style="width:60px;">
+        <label>Per row:</label><input type="number" id="perRow" value="5" min="1" max="12" style="width:50px;">
+        <label title="Width of each half-panel">Half px:</label><input type="number" id="cardPx" value="120" min="40" max="600" style="width:60px;">
+    </div>
+
+    <div class="controls">
+        <label>Sheet BG:</label><input type="color" id="bgColor" value="#ffffff">
+        <label>Outline:</label><input type="color" id="outlineColor" value="#b9b9d6">
+        <label><input type="checkbox" id="showOutline" checked style="accent-color:#DC0000; vertical-align:middle;"> Flap outline</label>
+        <label><input type="checkbox" id="showLabels" checked style="accent-color:#DC0000; vertical-align:middle;"> Labels</label>
+        <label>Export &times;:</label>
+        <select id="exportScale"><option value="1">1&times;</option><option value="2">2&times;</option><option value="4" selected>4&times;</option></select>
+    </div>
+
+    <div class="controls">
+        <label>Save to:</label><span id="saveModeLabel" style="font-size:0.8rem;color:#888;">Browser downloads</span>
+        <label>Subfolder:</label><input type="text" id="subfolder" value="Flap Sheets" style="width:150px; font-family:monospace;">
+        <button class="secondary" id="folderBtn">Choose Folder&hellip;</button>
+        <span id="folderName" style="font-size:0.8rem;color:#888;"></span>
+        <button id="exportBtn">Export Sheet PNG</button>
+    </div>
+
+    <div class="status" id="status">Load a column folder to begin.</div>
+    <div class="sheet-wrap"><canvas id="sheet" width="400" height="200"></canvas></div>
+
+    <p class="instructions">
+        <b>Composition:</b> each card = Top half | Bottom half of the same character, side by side with no gap, so each pair stays together on one row. The detent notch sits on each half's split edge. Flap 0 wraps, so it's the outlier.<br>
+        The folder picker reads every <code>* use_this_asset.png</code> and orders them by their <code>Flap NN</code> number. Runs on file:// or via the local server.
+    </p>
+
+    <script>
+        const $ = id => document.getElementById(id);
+        const dirInput = $('dirInput'), filesInput = $('filesInput'), filesBtn = $('filesBtn');
+        const flapWidthInput = $('flapWidth'), flapHeightInput = $('flapHeight');
+        const detentDepthInput = $('detentDepth'), detentReachInput = $('detentReach');
+        const perRowInput = $('perRow'), cardPxInput = $('cardPx');
+        const bgColor = $('bgColor'), outlineColor = $('outlineColor');
+        const showOutline = $('showOutline'), showLabels = $('showLabels'), exportScaleSel = $('exportScale');
+        const subfolderInput = $('subfolder'), folderBtn = $('folderBtn'), folderName = $('folderName'), saveModeLabel = $('saveModeLabel');
+        const statusEl = $('status'), sheet = $('sheet');
+
+        const gW = () => parseInt(flapWidthInput.value) || 430;
+        const gH = () => parseInt(flapHeightInput.value) || 700;
+        const gDepth = () => Math.max(0, parseInt(detentDepthInput.value) || 0);
+        const gReach = () => Math.max(0, parseInt(detentReachInput.value) || 0);
+        const gPerRow = () => Math.max(1, parseInt(perRowInput.value) || 4);
+        const gCardPx = () => Math.max(40, parseInt(cardPxInput.value) || 160);
+        const gScale = () => parseInt(exportScaleSel.value) || 1;
+
+        let cards = []; // { pos, label, img }
+        let sourceName = 'column';
+
+        function setStatus(m, c) { statusEl.textContent = m; statusEl.className = 'status' + (c ? ' ' + c : ''); }
+
+        function loadImage(file) {
+            return new Promise((resolve) => {
+                const img = new Image();
+                img.onload = () => resolve(img);
+                img.onerror = () => resolve(null);
+                img.src = URL.createObjectURL(file);
+            });
+        }
+
+        async function ingest(fileList) {
+            const files = Array.from(fileList).filter(f => /use_this_asset\.png$/i.test(f.name));
+            if (!files.length) { setStatus('No "use_this_asset.png" files found in that selection.', 'err'); return; }
+            // derive a source name from the common folder
+            const anyPath = files[0].webkitRelativePath || files[0].name;
+            sourceName = (anyPath.split('/')[0]) || 'column';
+            const parsed = files.map(f => {
+                const path = f.webkitRelativePath || f.name;
+                const m = path.match(/Flap\s+(\d+)\s*(.*?)\s*use_this_asset/i);
+                return { pos: m ? parseInt(m[1]) : 9999, label: m ? m[2].trim() : f.name, file: f };
+            }).sort((a, b) => a.pos - b.pos);
+
+            setStatus(`Loading ${parsed.length} images\u2026`);
+            cards = [];
+            for (const p of parsed) {
+                const img = await loadImage(p.file);
+                if (img) cards.push({ pos: p.pos, label: p.label, img });
+            }
+            setStatus(`Loaded ${cards.length} flaps from "${sourceName}".`, 'ok');
+            render();
+        }
+
+        dirInput.addEventListener('change', e => ingest(e.target.files));
+        filesBtn.addEventListener('click', () => filesInput.click());
+        filesInput.addEventListener('change', e => ingest(e.target.files));
+        [flapWidthInput, flapHeightInput, detentDepthInput, detentReachInput, perRowInput, cardPxInput].forEach(el => el.addEventListener('change', render));
+        [bgColor, outlineColor].forEach(el => el.addEventListener('input', render));
+        [showOutline, showLabels].forEach(el => el.addEventListener('change', render));
+
+        // Outline path for one half-panel; the notch (detent) sits on the split edge.
+        function halfOutlinePath(ctx, x, y, w, h, depth, reach, split) {
+            ctx.beginPath();
+            if (depth <= 0 || reach <= 0) { ctx.rect(x, y, w, h); return; }
+            if (split === 'top') {           // front (bottom half): split edge is the TOP
+                ctx.moveTo(x + depth, y);
+                ctx.lineTo(x + w - depth, y);
+                ctx.lineTo(x + w - depth, y + reach);
+                ctx.lineTo(x + w, y + reach);
+                ctx.lineTo(x + w, y + h);
+                ctx.lineTo(x, y + h);
+                ctx.lineTo(x, y + reach);
+                ctx.lineTo(x + depth, y + reach);
+                ctx.closePath();
+            } else {                          // back (top half): split edge is the BOTTOM
+                ctx.moveTo(x, y);
+                ctx.lineTo(x + w, y);
+                ctx.lineTo(x + w, y + h - reach);
+                ctx.lineTo(x + w - depth, y + h - reach);
+                ctx.lineTo(x + w - depth, y + h);
+                ctx.lineTo(x + depth, y + h);
+                ctx.lineTo(x + depth, y + h - reach);
+                ctx.lineTo(x, y + h - reach);
+                ctx.closePath();
+            }
+        }
+
+        // A card keeps one character's two halves together as a pair, side by side:
+        // Top half (left) | Bottom half (right) of the SAME character.
+        function drawCard(ctx, x, y, pw, ph, img, flapNum, s, outlier) {
+            if (img) {
+                ctx.drawImage(img, 0, 0, img.width, img.height / 2, x, y, pw, ph);                                  // top half -> left
+                ctx.drawImage(img, 0, img.height / 2, img.width, img.height - img.height / 2, x + pw, y, pw, ph);    // bottom half -> right
+            }
+
+            if (showOutline.checked) {
+                const depth = gDepth() * (pw / gW());
+                const reach = Math.min(ph, gReach() * (ph / (gH() / 2)));
+                ctx.strokeStyle = outlineColor.value;
+                ctx.lineWidth = Math.max(1, 1.2 * s);
+                ctx.lineJoin = 'miter';
+                // Each half's detent notch sits on its split edge (the edge nearest the middle of the character).
+                halfOutlinePath(ctx, x, y, pw, ph, depth, reach, 'bottom'); ctx.stroke();      // top half: split edge at bottom
+                halfOutlinePath(ctx, x + pw, y, pw, ph, depth, reach, 'top'); ctx.stroke();     // bottom half: split edge at top
+            }
+
+            if (showLabels.checked) {
+                ctx.textBaseline = 'alphabetic';
+                ctx.textAlign = 'center';
+                ctx.fillStyle = '#c00';
+                ctx.font = `bold ${8 * s}px system-ui, sans-serif`;
+                ctx.fillText('Flap ' + flapNum + (outlier ? ' (wrap)' : ''), x + pw, y - 12 * s);
+                ctx.fillStyle = '#666';
+                ctx.font = `${7 * s}px system-ui, sans-serif`;
+                ctx.fillText('Top', x + pw / 2, y - 3 * s);
+                ctx.fillText('Bottom', x + pw + pw / 2, y - 3 * s);
+            }
+        }
+
+        // Compute sheet layout metrics for a given scale.
+        function metrics(scale) {
+            const pw = gCardPx() * scale;                 // half-panel width
+            const ph = pw * (gH() / 2) / gW();            // half-panel height (real half aspect)
+            const per = gPerRow();
+            const n = cards.length;
+            const rows = Math.max(1, Math.ceil(n / per));
+            const cardW = 2 * pw;                          // front + back, adjacent (no gap)
+            const hgap = 18 * scale, vgapTop = 22 * scale, vgapBot = 10 * scale, margin = 16 * scale;
+            const cellW = cardW + hgap;
+            const cellH = vgapTop + ph + vgapBot;
+            const W = margin * 2 + per * cellW - hgap;
+            const H = margin * 2 + rows * cellH;
+            return { pw, ph, per, n, rows, cardW, hgap, vgapTop, vgapBot, margin, cellW, cellH, W, H };
+        }
+
+        function drawSheet(ctx, scale) {
+            const m = metrics(scale);
+            ctx.fillStyle = bgColor.value;
+            ctx.fillRect(0, 0, m.W, m.H);
+            for (let i = 0; i < m.n; i++) {
+                const r = Math.floor(i / m.per), c = i % m.per;
+                const x = m.margin + c * m.cellW;
+                const y = m.margin + r * m.cellH + m.vgapTop;
+                drawCard(ctx, x, y, m.pw, m.ph, cards[i].img, cards[i].pos, scale, cards[i].pos === 0);
+            }
+        }
+
+        function render() {
+            if (!cards.length) return;
+            // preview: scale to fit within ~1000px wide
+            const base = metrics(1);
+            const fit = Math.min(1, 1000 / base.W);
+            sheet.width = Math.round(base.W * fit);
+            sheet.height = Math.round(base.H * fit);
+            const ctx = sheet.getContext('2d');
+            ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
+            drawSheet(ctx, fit);
+        }
+
+        // --- EXPORT DESTINATION (shared approach) ---
+        let exportDirHandle = null;
+        const fsAccessSupported = ('showDirectoryPicker' in window);
+        const IDB_NAME = 'flapDesigner', IDB_STORE = 'handles', IDB_KEY = 'sheetExportDir';
+        function idbOpen() { return new Promise((res, rej) => { const r = indexedDB.open(IDB_NAME, 1); r.onupgradeneeded = () => r.result.createObjectStore(IDB_STORE); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); }); }
+        async function idbSet(k, v) { const db = await idbOpen(); return new Promise((res, rej) => { const t = db.transaction(IDB_STORE, 'readwrite'); t.objectStore(IDB_STORE).put(v, k); t.oncomplete = res; t.onerror = () => rej(t.error); }); }
+        async function idbGet(k) { const db = await idbOpen(); return new Promise((res, rej) => { const t = db.transaction(IDB_STORE, 'readonly'); const r = t.objectStore(IDB_STORE).get(k); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); }); }
+        async function ensurePermission(h) { const o = { mode: 'readwrite' }; if ((await h.queryPermission(o)) === 'granted') return true; return (await h.requestPermission(o)) === 'granted'; }
+        let backendAvailable = false;
+        async function probeBackend() { if (!/^https?:$/.test(location.protocol)) return; try { const r = await fetch('/save', { method: 'OPTIONS' }); backendAvailable = (r.status === 204 || r.ok); } catch (e) {} }
+        function updateSaveModeUI() {
+            if (backendAvailable) { saveModeLabel.textContent = 'Local server \u2192 static assets/'; saveModeLabel.style.color = '#4caf50'; folderBtn.style.display = 'none'; }
+            else if (fsAccessSupported) { saveModeLabel.textContent = 'Pick a folder \u2192'; folderBtn.style.display = ''; }
+            else { saveModeLabel.textContent = 'Browser downloads'; folderBtn.style.display = 'none'; }
+        }
+        folderBtn.addEventListener('click', async () => { if (!fsAccessSupported) return; try { const h = await window.showDirectoryPicker({ id: 'sheetExport', mode: 'readwrite' }); exportDirHandle = h; folderName.textContent = 'Into: ' + h.name + '/'; try { await idbSet(IDB_KEY, h); } catch (e) {} } catch (e) {} });
+        (async () => { if (fsAccessSupported) { try { const h = await idbGet(IDB_KEY); if (h) { exportDirHandle = h; folderName.textContent = 'Into: ' + h.name + '/ (confirm on export)'; } } catch (e) {} } })();
+
+        async function saveCanvas(relPath, canvas) {
+            if (backendAvailable) {
+                const res = await fetch('/save', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ path: relPath, dataUrl: canvas.toDataURL('image/png') }) });
+                const j = await res.json(); if (!j.ok) throw new Error(j.error || 'server error'); return j.path;
+            }
+            const blob = await new Promise(r => canvas.toBlob(r, 'image/png'));
+            if (exportDirHandle) {
+                if (!(await ensurePermission(exportDirHandle))) throw new Error('permission denied');
+                const parts = relPath.split('/'); let dir = exportDirHandle;
+                for (let i = 0; i < parts.length - 1; i++) dir = await dir.getDirectoryHandle(parts[i], { create: true });
+                const fh = await dir.getFileHandle(parts[parts.length - 1], { create: true });
+                const w = await fh.createWritable(); await w.write(blob); await w.close();
+                return exportDirHandle.name + '/' + relPath;
+            }
+            const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.download = relPath.split('/').join('__'); a.href = url; a.click(); URL.revokeObjectURL(url); return a.download;
+        }
+
+        $('exportBtn').addEventListener('click', async () => {
+            if (!cards.length) { setStatus('Load a column first.', 'err'); return; }
+            const scale = gScale();
+            const m = metrics(scale);
+            const cv = document.createElement('canvas'); cv.width = Math.round(m.W); cv.height = Math.round(m.H);
+            const ctx = cv.getContext('2d');
+            ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
+            drawSheet(ctx, scale);
+            const sub = (subfolderInput.value || '').trim().replace(/^\/+|\/+$/g, '');
+            const file = `${sourceName} flap sheet.png`;
+            const relPath = sub ? sub + '/' + file : file;
+            try { const saved = await saveCanvas(relPath, cv); setStatus('Saved ' + saved, 'ok'); }
+            catch (err) { setStatus('Export failed: ' + err.message, 'err'); }
+        });
+
+        (async () => { await probeBackend(); updateSaveModeUI(); })();
+    </script>
+</body>
+</html>

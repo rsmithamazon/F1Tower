@@ -7,3 +7,6 @@
 # Python
 __pycache__/
 *.pyc
+
+# Scratch working directory
+tmp/
