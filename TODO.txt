@@ -1,16 +1,5 @@
 1. CutSheet
-    1. Thermometer icon col 1
-    2. colors and numbers for all cols
-    3. letters for col 2-4 (need to get F1  Font)
-    4.  | - | Dash |
-        | . | Period |
-        | : | Colon | not col 5
-        | ° | Degree symbol |
-        | % | Percent |
-        | + | Plus |
-        | / | Slash | not col 5
-        | ! | Exclamation |
-    5. KPH/MPH for col 4
+    1. Order Flaps 
 
 2. HW validation
     1. Magnets/Hall Sensor

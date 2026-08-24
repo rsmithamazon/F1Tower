@@ -10,3 +10,6 @@ __pycache__/
 
 # Scratch working directory
 tmp/
+
+# Large exported vector sheets (kept local only)
+static assets/Vector Sheets/
