@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Split Flap — Vector Print Sheet (SVG)</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: #1a1a1e; color: #e0e0e0;
+            display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding: 20px; }
+        h1 { font-size: 1.4rem; margin-bottom: 4px; color: #fff; }
+        .subtitle { font-size: 0.85rem; color: #888; margin-bottom: 16px; max-width: 780px; text-align: center; }
+        .controls { display: flex; gap: 12px; align-items: center; margin-bottom: 10px; flex-wrap: wrap; justify-content: center; max-width: 1100px; }
+        .controls label { font-size: 0.85rem; color: #aaa; }
+        .controls input[type="text"], .controls input[type="number"], .controls select {
+            background: #2a2a30; border: 1px solid #444; border-radius: 4px; padding: 5px 8px; color: #e0e0e0; }
+        .controls input[type="file"] { background: #2a2a30; border: 1px solid #444; border-radius: 6px; padding: 6px 12px; color: #e0e0e0; cursor: pointer; }
+        .controls input[type="color"] { width: 36px; height: 30px; border: 1px solid #444; border-radius: 4px; background: #2a2a30; cursor: pointer; padding: 2px; }
+        .controls button { background: #DC0000; border: none; border-radius: 6px; padding: 8px 16px; color: #fff; font-weight: bold; cursor: pointer; font-size: 0.85rem; }
+        .controls button:hover { background: #ff2020; }
+        .controls button.secondary { background: #333; border: 1px solid #555; }
+        .controls button.secondary:hover { background: #444; }
+        .status { margin: 10px 0; font-size: 0.82rem; color: #888; text-align: center; min-height: 1.2em; }
+        .status.ok { color: #4caf50; } .status.err { color: #DC0000; }
+        .sheet-wrap { border: 1px solid #333; border-radius: 6px; overflow: auto; max-width: 100%; max-height: 76vh; background: #fff; padding: 6px; }
+        .sheet-wrap svg { max-width: 100%; height: auto; display: block; }
+        .instructions { margin-top: 12px; font-size: 0.78rem; color: #666; text-align: center; max-width: 800px; line-height: 1.5; }
+        code { background: #2a2a30; padding: 1px 5px; border-radius: 3px; }
+    </style>
+</head>
+<body>
+    <h1>Split Flap Vector Print Sheet</h1>
+    <p class="subtitle">Load a column folder (<code>use_this_asset</code> files). A flap is a <b>half</b> (letter A = 2 flaps). Every half is its <b>own separate flap</b> (fw &times; half-height): Flap 0 = bottom half of char 0, then top half of char 1, bottom half of char 1, &hellip; wrapping. Real-size <b>SVG</b> (mm), vector <b>Cutlines</b>, black hinge <b>Notch</b> on the fold edge, embedded PNGs. Opens in Illustrator / CorelDRAW &rarr; export AI or CDR.</p>
+
+    <div class="controls">
+        <label>Column folder:</label>
+        <input type="file" id="dirInput" webkitdirectory directory multiple>
+        <button class="secondary" id="filesBtn">or pick files&hellip;</button>
+        <input type="file" id="filesInput" accept="image/*" multiple style="display:none;">
+    </div>
+
+    <div class="controls">
+        <label title="Real flap size in mm">Flap W(mm):</label><input type="number" id="flapW" value="43" min="5" max="500" step="0.1" style="width:65px;">
+        <label>H(mm):</label><input type="number" id="flapH" value="70" min="5" max="500" step="0.1" style="width:65px;">
+        <label title="Notch depth per side">Detent W:</label><input type="number" id="detentW" value="2" min="0" max="50" step="0.1" style="width:55px;">
+        <label title="Notch reach from center">Detent H:</label><input type="number" id="detentH" value="18" min="0" max="250" step="0.1" style="width:55px;">
+        <label>Per row:</label><input type="number" id="perRow" value="8" min="1" max="30" style="width:50px;">
+    </div>
+
+    <div class="controls">
+        <label title="Black hinge notch — how far it sticks out from each side (mm)">Notch out:</label><input type="number" id="notchOut" value="2" min="0" max="20" step="0.1" style="width:55px;">
+        <label title="Notch height (mm)">Notch H:</label><input type="number" id="notchH" value="1.2" min="0" max="20" step="0.1" style="width:55px;">
+        <label title="Notch offset in from the fold edge (mm)">From fold:</label><input type="number" id="notchFromBottom" value="1.2" min="0" max="60" step="0.1" style="width:55px;">
+        <label><input type="checkbox" id="showNotch" checked style="accent-color:#DC0000; vertical-align:middle;"> Hinge notch</label>
+    </div>
+
+    <div class="controls">
+        <label>Orientation:</label>
+        <label title="Rotate the top-half graphics 180&deg;"><input type="checkbox" id="flipTop" checked style="accent-color:#DC0000; vertical-align:middle;"> Flip top halves</label>
+        <label title="Rotate the bottom-half graphics 180&deg;"><input type="checkbox" id="flipBottom" style="accent-color:#DC0000; vertical-align:middle;"> Flip bottom halves</label>
+    </div>
+
+    <div class="controls">
+        <label>Cut stroke:</label><input type="color" id="cutColor" value="#ff00ff">
+        <label><input type="checkbox" id="showLabels" checked style="accent-color:#DC0000; vertical-align:middle;"> Flap labels</label>
+        <label>Save to:</label><span id="saveModeLabel" style="font-size:0.8rem;color:#888;">Browser downloads</span>
+        <label>Subfolder:</label><input type="text" id="subfolder" value="Vector Sheets" style="width:140px; font-family:monospace;">
+        <button class="secondary" id="folderBtn">Choose Folder&hellip;</button>
+        <span id="folderName" style="font-size:0.8rem;color:#888;"></span>
+        <button id="exportBtn">Export SVG</button>
+    </div>
+
+    <div class="status" id="status">Load a column folder to begin.</div>
+    <div class="sheet-wrap" id="sheetWrap"></div>
+
+    <p class="instructions">
+        Each half-flap is its own leaf: the flap shape (body + hinge notch tabs) is one continuous <b>Cutlines</b> path (magenta), the leaf is filled black (tabs included), and the artwork PNG covers the body. The notch tabs sit on the <b>fold edge</b> (bottom of a bottom-half, top of a top-half): default <b>1.2mm</b> in from the fold, <b>2mm</b> out, <b>1.2mm</b> tall. Use <b>Flip top / bottom halves</b> to orient the graphics (one half is normally upside down). Real mm. Illustrator: <b>File&rarr;Open</b> then <b>Save As .ai</b>. CorelDRAW: <b>Import</b> then export <b>.cdr</b>. (Detent W/H no longer apply.)
+    </p>
+
+    <script>
+        const $ = id => document.getElementById(id);
+        const dirInput = $('dirInput'), filesInput = $('filesInput'), filesBtn = $('filesBtn');
+        const flapWInput = $('flapW'), flapHInput = $('flapH'), detentWInput = $('detentW'), detentHInput = $('detentH');
+        const perRowInput = $('perRow'), cutColor = $('cutColor'), showLabels = $('showLabels');
+        const notchOutInput = $('notchOut'), notchHInput = $('notchH'), notchFromBottomInput = $('notchFromBottom'), showNotch = $('showNotch');
+        const flipTop = $('flipTop'), flipBottom = $('flipBottom');
+        const subfolderInput = $('subfolder'), folderBtn = $('folderBtn'), folderName = $('folderName'), saveModeLabel = $('saveModeLabel');
+        const statusEl = $('status'), sheetWrap = $('sheetWrap');
+
+        const gW = () => parseFloat(flapWInput.value) || 43;
+        const gH = () => parseFloat(flapHInput.value) || 70;
+        const gDW = () => Math.max(0, parseFloat(detentWInput.value) || 0);
+        const gDH = () => Math.max(0, parseFloat(detentHInput.value) || 0);
+        const gPer = () => Math.max(1, parseInt(perRowInput.value) || 8);
+        const gNout = () => Math.max(0, parseFloat(notchOutInput.value) || 0);
+        const gNh = () => Math.max(0, parseFloat(notchHInput.value) || 0);
+        const gNfb = () => Math.max(0, parseFloat(notchFromBottomInput.value) || 0);
+
+        let cards = [];       // { pos, label, dataURL }
+        let sourceName = 'column';
+
+        function setStatus(m, c) { statusEl.textContent = m; statusEl.className = 'status' + (c ? ' ' + c : ''); }
+
+        function readDataURL(file) {
+            return new Promise(res => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = () => res(null); r.readAsDataURL(file); });
+        }
+
+        async function ingest(fileList) {
+            const files = Array.from(fileList).filter(f => /use_this_asset\.(png|jpe?g)$/i.test(f.name));
+            if (!files.length) { setStatus('No "use_this_asset" images in that selection.', 'err'); return; }
+            const anyPath = files[0].webkitRelativePath || files[0].name;
+            sourceName = anyPath.split('/')[0] || 'column';
+            const parsed = files.map(f => {
+                const path = f.webkitRelativePath || f.name;
+                const m = path.match(/Flap\s+(\d+)\s*(.*?)\s*use_this_asset/i);
+                return { pos: m ? parseInt(m[1]) : 9999, label: m ? m[2].trim() : f.name, file: f };
+            }).sort((a, b) => a.pos - b.pos);
+
+            setStatus(`Reading ${parsed.length} images\u2026`);
+            cards = [];
+            for (const p of parsed) {
+                const dataURL = await readDataURL(p.file);
+                if (dataURL) cards.push({ pos: p.pos, label: p.label, dataURL });
+            }
+            setStatus(`Loaded ${cards.length} flaps from "${sourceName}".`, 'ok');
+            render();
+        }
+
+        dirInput.addEventListener('change', e => ingest(e.target.files));
+        filesBtn.addEventListener('click', () => filesInput.click());
+        filesInput.addEventListener('change', e => ingest(e.target.files));
+        [flapWInput, flapHInput, detentWInput, detentHInput, perRowInput, cutColor, showLabels,
+         notchOutInput, notchHInput, notchFromBottomInput, showNotch, flipTop, flipBottom].forEach(el => el.addEventListener('change', render));
+
+        // Notched flap outline path (detent cut on both sides at vertical centre), in mm.
+        function flapPath(x, y, w, h, depth, reach) {
+            const cy = y + h / 2;
+            const r = Math.min(reach, h / 2);
+            if (depth <= 0 || r <= 0) {
+                return `M${x},${y} H${x + w} V${y + h} H${x} Z`;
+            }
+            return [
+                `M${x},${y}`, `H${x + w}`,
+                `V${cy - r}`, `H${x + w - depth}`, `V${cy + r}`, `H${x + w}`,
+                `V${y + h}`, `H${x}`,
+                `V${cy + r}`, `H${x + depth}`, `V${cy - r}`, `H${x}`,
+                'Z'
+            ].join(' ');
+        }
+
+        // Build the ordered list of half-flaps. A flap IS a half. Splitting the
+        // drum's continuous strip gives, in order:
+        //   bottom half of char 0 (Flap 0), top half of char 1, bottom half of
+        //   char 1, top half of char 2, ...  wrapping so char 0's top half is
+        //   the very last flap. Each half is its own separate flap.
+        function buildHalfFlaps() {
+            const n = cards.length, out = [];
+            for (let i = 0; i < n; i++) {
+                const cur = cards[i], nxt = cards[(i + 1) % n];
+                out.push({ src: cur.dataURL, half: 'bottom', pos: cur.pos }); // bottom half of char i, fold at its TOP-> no: fold at bottom edge of this cell
+                out.push({ src: nxt.dataURL, half: 'top', pos: nxt.pos });    // top half of char i+1
+            }
+            return out;
+        }
+
+        function buildSVG() {
+            const fw = gW(), fh = gH(), per = gPer();
+            const halfH = +(fh / 2).toFixed(3);
+            const nOut = gNout(), nH = gNh(), nFB = gNfb(), useNotch = showNotch.checked && nOut > 0 && nH > 0;
+            const flaps = buildHalfFlaps();
+            const n = flaps.length;
+            const margin = 5, labelH = showLabels.checked ? 5 : 2, gapY = 6;
+            const gapX = Math.max(3, (useNotch ? 2 * nOut : 0) + 2);
+            const cellW = fw + gapX, cellH = labelH + halfH + gapY;
+            const rows = Math.max(1, Math.ceil(n / per));
+            const W = +(margin * 2 + per * cellW - gapX).toFixed(2);
+            const H = +(margin * 2 + rows * cellH).toFixed(2);
+
+            const fTop = flipTop.checked, fBot = flipBottom.checked;
+            const dW = gDW(), dR = Math.min(gDH(), halfH);
+            const useDetent = dW > 0 && dR > 0;
+
+            // Half-flap outline. Fold/hinge edge is the TOP for every flap. The
+            // detent insets the top edge by dW for dR (so it's not square); the
+            // black hinge notch is a small tab that fills back flush to full width,
+            // nH tall, nFB down from the top. One continuous cut path.
+            function outline(x, y, w, h) {
+                const r = x + w, b = y + h;
+                if (!useDetent && !useNotch) return `M${x},${y} H${r.toFixed(2)} V${b.toFixed(2)} H${x} Z`;
+                const inL = useDetent ? x + dW : x;          // inset left edge at top
+                const inR = useDetent ? r - dW : r;          // inset right edge at top
+                const ny1 = y + nFB, ny2 = y + nFB + nH;     // notch band
+                const detEnd = useDetent ? y + dR : y;       // where detent returns to full width
+                const p = [];
+                p.push(`M${inL.toFixed(2)},${y.toFixed(2)}`);
+                p.push(`H${inR.toFixed(2)}`);                // top edge (inset)
+                if (useNotch) { p.push(`V${ny1.toFixed(2)}`, `H${r.toFixed(2)}`, `V${ny2.toFixed(2)}`, `H${inR.toFixed(2)}`); }
+                if (useDetent) { p.push(`V${detEnd.toFixed(2)}`, `H${r.toFixed(2)}`); }
+                p.push(`V${b.toFixed(2)}`);                  // right edge to bottom
+                p.push(`H${x.toFixed(2)}`);                  // bottom edge
+                if (useDetent) { p.push(`V${detEnd.toFixed(2)}`, `H${inL.toFixed(2)}`); }
+                if (useNotch) { p.push(`V${ny2.toFixed(2)}`, `H${x.toFixed(2)}`, `V${ny1.toFixed(2)}`, `H${inL.toFixed(2)}`); }
+                p.push(`V${y.toFixed(2)}`, 'Z');
+                return p.join(' ');
+            }
+
+            let clips = '', black = '', arts = '', cuts = '', labels = '';
+            for (let i = 0; i < n; i++) {
+                const f = flaps[i];
+                const c = i % per, rr = Math.floor(i / per);
+                const x = +(margin + c * cellW).toFixed(2);
+                const y = +(margin + rr * cellH + labelH).toFixed(2);
+
+                const d = outline(x, y, fw, halfH);
+
+                // Whole leaf is black (includes the notch bump).
+                black += `<path d="${d}"/>`;
+
+                // Clip the artwork to the flap shape (respects the detent).
+                clips += `<clipPath id="flap${i}"><path d="${d}"/></clipPath>`;
+
+                // Place the correct half of the full asset, with optional 180 flip.
+                const imgY = f.half === 'top' ? y : +(y - halfH).toFixed(2);
+                const flip = f.half === 'top' ? fTop : fBot;
+                const img = `<image x="${x}" y="${imgY}" width="${fw}" height="${fh}" preserveAspectRatio="none" href="${f.src}"/>`;
+                const inner = flip
+                    ? `<g transform="rotate(180 ${(x + fw / 2).toFixed(2)} ${(y + halfH / 2).toFixed(2)})">${img}</g>`
+                    : img;
+                arts += `<g clip-path="url(#flap${i})">${inner}</g>`;
+
+                cuts += `<path d="${d}"/>`;
+
+                if (showLabels.checked) {
+                    labels += `<text x="${(x + fw / 2).toFixed(2)}" y="${(y - 1).toFixed(2)}" text-anchor="middle" font-size="2.6" font-family="sans-serif" fill="#cc0000">${f.pos}${f.half === 'top' ? 'T' : 'B'}</text>`;
+                }
+            }
+
+            return `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${W}mm" height="${H}mm" viewBox="0 0 ${W} ${H}">
+  <rect x="0" y="0" width="${W}" height="${H}" fill="#ffffff"/>
+  <defs>${clips}</defs>
+  <g id="Leaf" fill="#000000">${black}</g>
+  <g id="Artwork">${arts}</g>
+  <g id="Cutlines" fill="none" stroke="${cutColor.value}" stroke-width="0.2">${cuts}</g>
+  <g id="Labels">${labels}</g>
+</svg>`;
+        }
+
+        function escapeXml(s) { return String(s).replace(/[<>&'"]/g, ch => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', "'": '&apos;', '"': '&quot;' }[ch])); }
+
+        function render() {
+            if (!cards.length) { sheetWrap.innerHTML = ''; return; }
+            sheetWrap.innerHTML = buildSVG();
+        }
+
+        // --- EXPORT DESTINATION ---
+        let exportDirHandle = null;
+        const fsAccessSupported = ('showDirectoryPicker' in window);
+        const IDB_NAME = 'flapDesigner', IDB_STORE = 'handles', IDB_KEY = 'vectorExportDir';
+        function idbOpen() { return new Promise((res, rej) => { const r = indexedDB.open(IDB_NAME, 1); r.onupgradeneeded = () => r.result.createObjectStore(IDB_STORE); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); }); }
+        async function idbSet(k, v) { const db = await idbOpen(); return new Promise((res, rej) => { const t = db.transaction(IDB_STORE, 'readwrite'); t.objectStore(IDB_STORE).put(v, k); t.oncomplete = res; t.onerror = () => rej(t.error); }); }
+        async function idbGet(k) { const db = await idbOpen(); return new Promise((res, rej) => { const t = db.transaction(IDB_STORE, 'readonly'); const r = t.objectStore(IDB_STORE).get(k); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); }); }
+        async function ensurePermission(h) { const o = { mode: 'readwrite' }; if ((await h.queryPermission(o)) === 'granted') return true; return (await h.requestPermission(o)) === 'granted'; }
+        let backendAvailable = false;
+        async function probeBackend() { if (!/^https?:$/.test(location.protocol)) return; try { const r = await fetch('/save', { method: 'OPTIONS' }); backendAvailable = (r.status === 204 || r.ok); } catch (e) {} }
+        function updateSaveModeUI() {
+            if (backendAvailable) { saveModeLabel.textContent = 'Local server \u2192 static assets/'; saveModeLabel.style.color = '#4caf50'; folderBtn.style.display = 'none'; }
+            else if (fsAccessSupported) { saveModeLabel.textContent = 'Pick a folder \u2192'; folderBtn.style.display = ''; }
+            else { saveModeLabel.textContent = 'Browser downloads'; folderBtn.style.display = 'none'; }
+        }
+        folderBtn.addEventListener('click', async () => { if (!fsAccessSupported) return; try { const h = await window.showDirectoryPicker({ id: 'vectorExport', mode: 'readwrite' }); exportDirHandle = h; folderName.textContent = 'Into: ' + h.name + '/'; try { await idbSet(IDB_KEY, h); } catch (e) {} } catch (e) {} });
+        (async () => { if (fsAccessSupported) { try { const h = await idbGet(IDB_KEY); if (h) { exportDirHandle = h; folderName.textContent = 'Into: ' + h.name + '/ (confirm on export)'; } } catch (e) {} } })();
+
+        async function saveText(relPath, text) {
+            if (backendAvailable) {
+                const res = await fetch('/save', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ path: relPath, text }) });
+                const j = await res.json(); if (!j.ok) throw new Error(j.error || 'server error'); return j.path;
+            }
+            const blob = new Blob([text], { type: 'image/svg+xml' });
+            if (exportDirHandle) {
+                if (!(await ensurePermission(exportDirHandle))) throw new Error('permission denied');
+                const parts = relPath.split('/'); let dir = exportDirHandle;
+                for (let i = 0; i < parts.length - 1; i++) dir = await dir.getDirectoryHandle(parts[i], { create: true });
+                const fh = await dir.getFileHandle(parts[parts.length - 1], { create: true });
+                const w = await fh.createWritable(); await w.write(blob); await w.close();
+                return exportDirHandle.name + '/' + relPath;
+            }
+            const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.download = relPath.split('/').join('__'); a.href = url; a.click(); URL.revokeObjectURL(url); return a.download;
+        }
+
+        $('exportBtn').addEventListener('click', async () => {
+            if (!cards.length) { setStatus('Load a column first.', 'err'); return; }
+            const sub = (subfolderInput.value || '').trim().replace(/^\/+|\/+$/g, '');
+            const file = `${sourceName} vector sheet.svg`;
+            const relPath = sub ? sub + '/' + file : file;
+            try { const saved = await saveText(relPath, buildSVG()); setStatus('Saved ' + saved, 'ok'); }
+            catch (err) { setStatus('Export failed: ' + err.message, 'err'); }
+        });
+
+        (async () => { await probeBackend(); updateSaveModeUI(); })();
+    </script>
+</body>
+</html>

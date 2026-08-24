@@ -33,6 +33,7 @@ const int IN2 = 7;
 const int IN3 = 8;
 const int IN4 = 9;
 const int HALL_PIN = 2;
+const int LED_PIN = LED_BUILTIN;   // Nano onboard LED (pin 13) — lights when magnet detected
 
 AccelStepper stepper(AccelStepper::HALF4WIRE, IN1, IN3, IN2, IN4);
 
@@ -53,7 +54,9 @@ void powerOff() {
 }
 
 bool isMagnetDetected() {
-    return digitalRead(HALL_PIN) == LOW;
+    bool detected = (digitalRead(HALL_PIN) == LOW);
+    digitalWrite(LED_PIN, detected ? HIGH : LOW);   // LED on while a magnet is present
+    return detected;
 }
 
 bool homeMotor() {
@@ -110,8 +113,9 @@ void waitForInput() {
     if (AUTO_ADVANCE) {
         delay(AUTO_DELAY_MS);
     } else {
-        // Wait for any serial input
+        // Wait for any serial input; keep the LED tracking the magnet meanwhile
         while (!Serial.available()) {
+            isMagnetDetected();   // refreshes LED_PIN from the hall sensor
             delay(50);
         }
         // Clear input buffer
@@ -124,6 +128,8 @@ void waitForInput() {
 void setup() {
     Serial.begin(115200);
     pinMode(HALL_PIN, INPUT_PULLUP);
+    pinMode(LED_PIN, OUTPUT);
+    digitalWrite(LED_PIN, LOW);
     delay(1000);
 
     buildFlapTable();

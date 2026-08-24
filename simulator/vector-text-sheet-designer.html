@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Split Flap — Vector TEXT Sheet (tiny SVG)</title>
+    <style>
+        @font-face { font-family: 'Automata Bold';  src: url('fonts/Automata-Bold.otf') format('opentype'); }
+        @font-face { font-family: 'Automata Black'; src: url('fonts/Automata-Black.otf') format('opentype'); }
+        @font-face { font-family: 'Automata Regular'; src: url('fonts/Automata-Regular.otf') format('opentype'); }
+        @font-face { font-family: 'Space Bold';     src: url('fonts/Space-Bold.otf') format('opentype'); }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: #1a1a1e; color: #e0e0e0;
+            display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding: 20px; }
+        h1 { font-size: 1.4rem; margin-bottom: 4px; color: #fff; }
+        .subtitle { font-size: 0.85rem; color: #888; margin-bottom: 14px; max-width: 820px; text-align: center; }
+        .controls { display: flex; gap: 10px; align-items: center; margin-bottom: 9px; flex-wrap: wrap; justify-content: center; max-width: 1100px; }
+        .controls label { font-size: 0.82rem; color: #aaa; }
+        .controls input[type="text"], .controls input[type="number"], .controls select {
+            background: #2a2a30; border: 1px solid #444; border-radius: 4px; padding: 4px 7px; color: #e0e0e0; }
+        .controls input[type="color"] { width: 34px; height: 28px; border: 1px solid #444; border-radius: 4px; background: #2a2a30; cursor: pointer; padding: 2px; }
+        .controls button { background: #DC0000; border: none; border-radius: 6px; padding: 7px 15px; color: #fff; font-weight: bold; cursor: pointer; font-size: 0.85rem; }
+        .controls button:hover { background: #ff2020; }
+        .controls button.secondary { background: #333; border: 1px solid #555; }
+        .status { margin: 10px 0; font-size: 0.82rem; color: #888; text-align: center; min-height: 1.2em; }
+        .status.ok { color: #4caf50; } .status.err { color: #DC0000; }
+        .sheet-wrap { border: 1px solid #333; border-radius: 6px; overflow: auto; max-width: 100%; max-height: 72vh; background: #fff; padding: 6px; }
+        .sheet-wrap svg { max-width: 100%; height: auto; display: block; }
+        .instructions { margin-top: 12px; font-size: 0.78rem; color: #666; text-align: center; max-width: 820px; line-height: 1.5; }
+        code { background: #2a2a30; padding: 1px 5px; border-radius: 3px; }
+    </style>
+</head>
+<body>
+    <h1>Split Flap Vector TEXT Sheet</h1>
+    <p class="subtitle">Draws each half-flap with the glyph as <b>vector text</b> (no embedded images) &rarr; tiny SVG (KB, not MB). Half-flap layout with detent + black hinge notch. For print: open in Illustrator, <b>Type &rarr; Create Outlines</b>, then Save AI / export CDR.</p>
+
+    <div class="controls">
+        <label>Characters:</label>
+        <input type="text" id="charset" value="0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ-.:&deg;%+/!" style="width:400px; font-family:monospace;">
+        <label>Multi:</label>
+        <input type="text" id="tokens" value="" placeholder="mph, kph" style="width:120px; font-family:monospace;">
+    </div>
+
+    <div class="controls">
+        <label>Font:</label>
+        <select id="fontSel">
+            <option value="Space Bold">Space Bold</option>
+            <option value="Automata Black">Automata Black</option>
+            <option value="Automata Bold" selected>Automata Bold</option>
+            <option value="Automata Regular">Automata Regular</option>
+        </select>
+        <label>Size %:</label><input type="number" id="sizePct" value="55" min="10" max="120" style="width:55px;">
+        <label>Text:</label><input type="color" id="fg" value="#ffffff">
+        <label>BG:</label><input type="color" id="bg" value="#000000">
+        <label>Nudge Y:</label><input type="number" id="nudgeY" value="0" step="0.5" style="width:55px;">
+    </div>
+
+    <div class="controls">
+        <label>Flap W(mm):</label><input type="number" id="flapW" value="43" min="5" max="500" step="0.1" style="width:60px;">
+        <label>H(mm):</label><input type="number" id="flapH" value="70" min="5" max="500" step="0.1" style="width:60px;">
+        <label>Detent W:</label><input type="number" id="detentW" value="2" min="0" max="50" step="0.1" style="width:50px;">
+        <label>Detent H:</label><input type="number" id="detentH" value="18" min="0" max="250" step="0.1" style="width:50px;">
+        <label>Per row:</label><input type="number" id="perRow" value="8" min="1" max="30" style="width:46px;">
+    </div>
+
+    <div class="controls">
+        <label>Notch out:</label><input type="number" id="notchOut" value="2" min="0" max="20" step="0.1" style="width:50px;">
+        <label>H:</label><input type="number" id="notchH" value="1.2" min="0" max="20" step="0.1" style="width:50px;">
+        <label>From fold:</label><input type="number" id="notchFromFold" value="1.2" min="0" max="60" step="0.1" style="width:50px;">
+        <label><input type="checkbox" id="showNotch" checked style="accent-color:#DC0000;vertical-align:middle;"> Notch</label>
+        <label><input type="checkbox" id="flipTop" checked style="accent-color:#DC0000;vertical-align:middle;"> Flip top</label>
+        <label><input type="checkbox" id="flipBottom" style="accent-color:#DC0000;vertical-align:middle;"> Flip bottom</label>
+        <label><input type="checkbox" id="showLabels" style="accent-color:#DC0000;vertical-align:middle;"> Labels</label>
+    </div>
+
+    <div class="controls">
+        <label>Cut:</label><input type="color" id="cutColor" value="#ff00ff">
+        <label>Save to:</label><span id="saveModeLabel" style="font-size:0.8rem;color:#888;">Browser downloads</span>
+        <label>Subfolder:</label><input type="text" id="subfolder" value="Vector Text Sheets" style="width:150px;font-family:monospace;">
+        <button class="secondary" id="folderBtn">Choose Folder&hellip;</button>
+        <span id="folderName" style="font-size:0.8rem;color:#888;"></span>
+        <input type="text" id="fileName" value="Text column" style="width:130px;font-family:monospace;">
+        <button id="exportBtn">Export SVG</button>
+        <span id="sizeInfo" style="font-size:0.8rem;color:#888;"></span>
+    </div>
+
+    <div class="status" id="status">Ready.</div>
+    <div class="sheet-wrap" id="sheetWrap"></div>
+
+    <p class="instructions">
+        A flap is a half; each character spans two flaps (offset + wrap). Glyphs are live <code>&lt;text&gt;</code> in the chosen font &mdash; the export stays tiny because there are no bitmaps. Fonts are <b>not</b> embedded, so <b>Create Outlines</b> in Illustrator/CorelDRAW before sending to the printer (otherwise the vendor needs the font). Colors/logos/flags are handled by the other designers.
+    </p>
+
+    <script>
+        const $ = id => document.getElementById(id);
+        const els = ['charset','tokens','fontSel','sizePct','fg','bg','nudgeY','flapW','flapH','detentW','detentH','perRow','notchOut','notchH','notchFromFold','showNotch','flipTop','flipBottom','showLabels','cutColor'].map($);
+        const charsetInput=$('charset'), tokensInput=$('tokens'), fontSel=$('fontSel'), sizePctInput=$('sizePct'),
+              fgInput=$('fg'), bgInput=$('bg'), nudgeYInput=$('nudgeY'), flapWInput=$('flapW'), flapHInput=$('flapH'),
+              detentWInput=$('detentW'), detentHInput=$('detentH'), perRowInput=$('perRow'),
+              notchOutInput=$('notchOut'), notchHInput=$('notchH'), notchFromFoldInput=$('notchFromFold'),
+              showNotch=$('showNotch'), flipTop=$('flipTop'), flipBottom=$('flipBottom'), showLabels=$('showLabels'),
+              cutColor=$('cutColor'), subfolderInput=$('subfolder'), fileNameInput=$('fileName'),
+              folderBtn=$('folderBtn'), folderName=$('folderName'), saveModeLabel=$('saveModeLabel'),
+              statusEl=$('status'), sheetWrap=$('sheetWrap'), sizeInfo=$('sizeInfo');
+
+        const gW=()=>parseFloat(flapWInput.value)||43, gH=()=>parseFloat(flapHInput.value)||70;
+        const gDW=()=>Math.max(0,parseFloat(detentWInput.value)||0), gDH=()=>Math.max(0,parseFloat(detentHInput.value)||0);
+        const gPer=()=>Math.max(1,parseInt(perRowInput.value)||8);
+        const gNout=()=>Math.max(0,parseFloat(notchOutInput.value)||0), gNh=()=>Math.max(0,parseFloat(notchHInput.value)||0), gNff=()=>Math.max(0,parseFloat(notchFromFoldInput.value)||0);
+        const gSize=()=>parseFloat(sizePctInput.value)||55, gNudge=()=>parseFloat(nudgeYInput.value)||0;
+
+        function setStatus(m,c){ statusEl.textContent=m; statusEl.className='status'+(c?' '+c:''); }
+        function esc(s){ return String(s).replace(/[<>&'"]/g,ch=>({'<':'&lt;','>':'&gt;','&':'&amp;',"'":'&apos;','"':'&quot;'}[ch])); }
+
+        function posOf(s){
+            const tok={'mph':50,'kph':51};
+            if(tok[s]!==undefined) return tok[s];
+            if(s.length!==1) return null;
+            if(s>='0'&&s<='9') return 8+(s.charCodeAt(0)-48);
+            if(s>='A'&&s<='Z') return 18+(s.charCodeAt(0)-65);
+            const sym={'-':44,'.':45,':':46,'\u00B0':47,'%':48,'+':49,'/':50,'!':51};
+            return sym[s]!==undefined?sym[s]:null;
+        }
+
+        // Ordered list of chars/tokens; each becomes 2 half-flaps (offset + wrap).
+        function items(){
+            const singles=Array.from(charsetInput.value);
+            const toks=(tokensInput.value||'').split(/[,\s]+/).map(t=>t.trim()).filter(Boolean);
+            return singles.concat(toks);
+        }
+        function halfFlaps(){
+            const it=items(), n=it.length, out=[];
+            for(let i=0;i<n;i++){
+                out.push({ch:it[i], half:'bottom', pos:posOf(it[i])});
+                out.push({ch:it[(i+1)%n], half:'top', pos:posOf(it[(i+1)%n])});
+            }
+            return out;
+        }
+
+        function buildSVG(){
+            const fw=gW(), fh=gH(), halfH=+(fh/2).toFixed(3), per=gPer();
+            const dW=gDW(), dR=Math.min(gDH(),halfH), useDetent=dW>0&&dR>0;
+            const nOut=gNout(), nH=gNh(), nFF=gNff(), useNotch=showNotch.checked&&nOut>0&&nH>0;
+            const flaps=halfFlaps(), n=flaps.length;
+            const margin=5, labelH=showLabels.checked?5:2, gapY=6;
+            const gapX=Math.max(3,(useNotch?2*nOut:0)+2);
+            const cellW=fw+gapX, cellH=labelH+halfH+gapY;
+            const rows=Math.max(1,Math.ceil(n/per));
+            const W=+(margin*2+per*cellW-gapX).toFixed(2), H=+(margin*2+rows*cellH).toFixed(2);
+            const font=fontSel.value, fontPx=fh*gSize()/100, fg=fgInput.value, bg=bgInput.value;
+            const fTop=flipTop.checked, fBot=flipBottom.checked;
+
+            function outline(x,y,w,h){
+                const r=x+w,b=y+h;
+                if(!useDetent&&!useNotch) return `M${x},${y} H${r.toFixed(2)} V${b.toFixed(2)} H${x} Z`;
+                const inL=useDetent?x+dW:x, inR=useDetent?r-dW:r;
+                const ny1=y+nFF, ny2=y+nFF+nH, detEnd=useDetent?y+dR:y;
+                const p=[`M${inL.toFixed(2)},${y.toFixed(2)}`, `H${inR.toFixed(2)}`];
+                if(useNotch){ p.push(`V${ny1.toFixed(2)}`,`H${r.toFixed(2)}`,`V${ny2.toFixed(2)}`,`H${inR.toFixed(2)}`); }
+                if(useDetent){ p.push(`V${detEnd.toFixed(2)}`,`H${r.toFixed(2)}`); }
+                p.push(`V${b.toFixed(2)}`,`H${x.toFixed(2)}`);
+                if(useDetent){ p.push(`V${detEnd.toFixed(2)}`,`H${inL.toFixed(2)}`); }
+                if(useNotch){ p.push(`V${ny2.toFixed(2)}`,`H${x.toFixed(2)}`,`V${ny1.toFixed(2)}`,`H${inL.toFixed(2)}`); }
+                p.push(`V${y.toFixed(2)}`,'Z');
+                return p.join(' ');
+            }
+
+            let clips='', black='', arts='', cuts='', labels='';
+            for(let i=0;i<n;i++){
+                const f=flaps[i], c=i%per, rr=Math.floor(i/per);
+                const x=+(margin+c*cellW).toFixed(2), y=+(margin+rr*cellH+labelH).toFixed(2);
+                const d=outline(x,y,fw,halfH);
+                black+=`<path d="${d}"/>`;
+                clips+=`<clipPath id="f${i}"><path d="${d}"/></clipPath>`;
+
+                // Full glyph centred so the requested half sits in the cell.
+                const cx=x+fw/2;
+                const cyFull=(f.half==='top') ? (y+halfH) : y;   // centre Y of the full-height glyph
+                const multi=f.ch.length>1;
+                const tl=multi?` textLength="${(fw*0.85).toFixed(2)}" lengthAdjust="spacingAndGlyphs"`:'';
+                let t=`<text x="${cx.toFixed(2)}" y="${(cyFull+gNudge()).toFixed(2)}" font-family="${esc(font)}" font-size="${fontPx.toFixed(2)}" fill="${fg}" text-anchor="middle" dominant-baseline="central"${tl}>${esc(f.ch)}</text>`;
+                const flip=(f.half==='top')?fTop:fBot;
+                if(flip) t=`<g transform="rotate(180 ${cx.toFixed(2)} ${(y+halfH/2).toFixed(2)})">${t}</g>`;
+                arts+=`<g clip-path="url(#f${i})">${t}</g>`;
+
+                cuts+=`<path d="${d}"/>`;
+                if(showLabels.checked){
+                    labels+=`<text x="${cx.toFixed(2)}" y="${(y-1).toFixed(2)}" text-anchor="middle" font-size="2.6" font-family="sans-serif" fill="#cc0000">${f.pos!=null?f.pos:''}${f.half==='top'?'T':'B'}</text>`;
+                }
+            }
+
+            return `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="${W}mm" height="${H}mm" viewBox="0 0 ${W} ${H}">
+  <rect x="0" y="0" width="${W}" height="${H}" fill="#ffffff"/>
+  <defs>${clips}</defs>
+  <g id="Leaf" fill="${bg}">${black}</g>
+  <g id="Artwork">${arts}</g>
+  <g id="Cutlines" fill="none" stroke="${cutColor.value}" stroke-width="0.2">${cuts}</g>
+  <g id="Labels">${labels}</g>
+</svg>`;
+        }
+
+        function render(){
+            const svg=buildSVG();
+            sheetWrap.innerHTML=svg;
+            sizeInfo.textContent=`~${(new Blob([svg]).size/1024).toFixed(1)} KB`;
+        }
+        els.forEach(e=>e.addEventListener('input',render));
+        els.forEach(e=>e.addEventListener('change',render));
+
+        // --- EXPORT DESTINATION (server / FS / download) ---
+        let exportDirHandle=null;
+        const fsOK=('showDirectoryPicker' in window);
+        const IDB='flapDesigner',ST='handles',KEY='vTextDir';
+        function idbOpen(){return new Promise((res,rej)=>{const r=indexedDB.open(IDB,1);r.onupgradeneeded=()=>r.result.createObjectStore(ST);r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);});}
+        async function idbSet(k,v){const db=await idbOpen();return new Promise((res,rej)=>{const t=db.transaction(ST,'readwrite');t.objectStore(ST).put(v,k);t.oncomplete=res;t.onerror=()=>rej(t.error);});}
+        async function idbGet(k){const db=await idbOpen();return new Promise((res,rej)=>{const t=db.transaction(ST,'readonly');const r=t.objectStore(ST).get(k);r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);});}
+        async function perm(h){const o={mode:'readwrite'};if((await h.queryPermission(o))==='granted')return true;return (await h.requestPermission(o))==='granted';}
+        let backend=false;
+        async function probe(){ if(!/^https?:$/.test(location.protocol))return; try{const r=await fetch('/save',{method:'OPTIONS'});backend=(r.status===204||r.ok);}catch(e){} }
+        function saveModeUI(){ if(backend){saveModeLabel.textContent='Local server \u2192 static assets/';saveModeLabel.style.color='#4caf50';folderBtn.style.display='none';} else if(fsOK){saveModeLabel.textContent='Pick a folder \u2192';folderBtn.style.display='';} else {saveModeLabel.textContent='Browser downloads';folderBtn.style.display='none';} }
+        folderBtn.addEventListener('click',async()=>{ if(!fsOK)return; try{const h=await window.showDirectoryPicker({id:'vText',mode:'readwrite'});exportDirHandle=h;folderName.textContent='Into: '+h.name+'/';try{await idbSet(KEY,h);}catch(e){}}catch(e){} });
+        (async()=>{ if(fsOK){try{const h=await idbGet(KEY);if(h){exportDirHandle=h;folderName.textContent='Into: '+h.name+'/ (confirm on export)';}}catch(e){}} })();
+
+        async function saveText(rel,text){
+            if(backend){ const res=await fetch('/save',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({path:rel,text})}); const j=await res.json(); if(!j.ok)throw new Error(j.error||'server error'); return j.path; }
+            const blob=new Blob([text],{type:'image/svg+xml'});
+            if(exportDirHandle){ if(!(await perm(exportDirHandle)))throw new Error('permission denied'); const parts=rel.split('/'); let dir=exportDirHandle; for(let i=0;i<parts.length-1;i++)dir=await dir.getDirectoryHandle(parts[i],{create:true}); const fh=await dir.getFileHandle(parts[parts.length-1],{create:true}); const w=await fh.createWritable(); await w.write(blob); await w.close(); return exportDirHandle.name+'/'+rel; }
+            const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.download=rel.split('/').join('__'); a.href=url; a.click(); URL.revokeObjectURL(url); return a.download;
+        }
+
+        $('exportBtn').addEventListener('click',async()=>{
+            const svg=buildSVG();
+            const sub=(subfolderInput.value||'').trim().replace(/^\/+|\/+$/g,'');
+            let name=(fileNameInput.value||'Text column').trim().replace(/[\\/]+/g,'_'); if(!/\.svg$/i.test(name))name+='.svg';
+            const rel=sub?sub+'/'+name:name;
+            try{ const saved=await saveText(rel,svg); const kb=(new Blob([svg]).size/1024).toFixed(1); setStatus(`Saved ${saved} (${kb} KB)`,'ok'); }
+            catch(err){ setStatus('Export failed: '+err.message,'err'); }
+        });
+
+        (async()=>{ await probe(); saveModeUI(); await document.fonts.ready; render(); })();
+    </script>
+</body>
+</html>

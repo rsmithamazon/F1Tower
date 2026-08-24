@@ -11,12 +11,15 @@
 // ===========================================================
 
 // --- CONFIG ---
-const int HALL_PIN = 2;          // GPIO pin for hall effect sensor
-const int LOOP_DELAY_MS = 200;   // How often to print (ms)
+const int HALL_PIN = 2;              // GPIO pin for hall effect sensor
+const int LED_PIN = LED_BUILTIN;     // Onboard LED — lights when magnet detected
+const int LOOP_DELAY_MS = 200;       // How often to print (ms)
 
 void setup() {
     Serial.begin(115200);
     pinMode(HALL_PIN, INPUT_PULLUP);
+    pinMode(LED_PIN, OUTPUT);
+    digitalWrite(LED_PIN, LOW);
 
     Serial.println("=== MAGNET SENSOR TEST ===");
     Serial.println("Bring magnet near sensor to test detection.");
@@ -28,7 +31,9 @@ void loop() {
     int sensorValue = digitalRead(HALL_PIN);
 
     // Hall sensors are typically active-LOW (LOW = magnet detected)
-    if (sensorValue == LOW) {
+    bool detected = (sensorValue == LOW);
+    digitalWrite(LED_PIN, detected ? HIGH : LOW);   // LED on while magnet present
+    if (detected) {
         Serial.println(">>> MAGNET DETECTED <<<");
     } else {
         Serial.println("    Nothing detected");

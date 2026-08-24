@@ -69,24 +69,31 @@ class DesignerHandler(SimpleHTTPRequestHandler):
             return
 
         rel = str(payload.get("path", "")).strip().replace("\\", "/").lstrip("/")
-        data_url = payload.get("dataUrl", "")
 
         # Reject path traversal; keep everything inside static assets.
         if not rel or ".." in rel.split("/"):
             self._send_json(400, {"ok": False, "error": "invalid path"})
             return
-        if not rel.lower().endswith(".png"):
-            rel += ".png"
 
-        m = _DATA_URL_RE.match(data_url)
-        if not m:
-            self._send_json(400, {"ok": False, "error": "expected a PNG data URL"})
-            return
-        try:
-            raw = base64.b64decode(m.group(1))
-        except Exception as e:
-            self._send_json(400, {"ok": False, "error": f"decode failed: {e}"})
-            return
+        text = payload.get("text")
+        if text is not None:
+            # Plain-text payload (e.g. SVG); keep the given extension.
+            raw = str(text).encode("utf-8")
+            if not os.path.splitext(rel)[1]:
+                rel += ".txt"
+        else:
+            data_url = payload.get("dataUrl", "")
+            if not rel.lower().endswith(".png"):
+                rel += ".png"
+            m = _DATA_URL_RE.match(data_url)
+            if not m:
+                self._send_json(400, {"ok": False, "error": "expected a PNG data URL or text"})
+                return
+            try:
+                raw = base64.b64decode(m.group(1))
+            except Exception as e:
+                self._send_json(400, {"ok": False, "error": f"decode failed: {e}"})
+                return
 
         target = os.path.normpath(os.path.join(ASSETS_DIR, rel))
         if not target.startswith(os.path.normpath(ASSETS_DIR) + os.sep):

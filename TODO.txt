@@ -1,6 +1,5 @@
 1. CutSheet
-    1. Thermometer icon col 1
-    2. order flaps
+    1. Order Flaps 
 
 2. HW validation
     1. Magnets/Hall Sensor
