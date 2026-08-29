@@ -44,6 +44,15 @@
 // If a commanded move hasn't finished in this long, flag a stall.
 #define STALL_TIMEOUT_MS   5000
 
+// --- MOTOR DIRECTION ---
+// The drum is mechanically forward-only, but "forward" depends on how the
+// coils are wired. Set REVERSE_DIRECTION to true to flip the physical spin
+// without rewiring (define it before including this header to override).
+// All flap/position logic is unchanged — only the coil phase order flips.
+#ifndef REVERSE_DIRECTION
+#define REVERSE_DIRECTION false
+#endif
+
 // --- HALF-STEP PHASE PATTERN (28BYJ-48 via ULN2003) ---
 // 8-entry half-step sequence over the 4 coil outputs (IN1..IN4).
 // Bit0=IN1, Bit1=IN2, Bit2=IN3, Bit3=IN4.
@@ -51,6 +60,16 @@ static const uint8_t HALFSTEP_PATTERN[8] = {
     0b0001, 0b0011, 0b0010, 0b0110,
     0b0100, 0b1100, 0b1000, 0b1001,
 };
+
+// Map the logical phase index (always increments forward) to an actual
+// pattern index, reversed when REVERSE_DIRECTION is set.
+static inline uint8_t phaseToPattern(uint8_t phase) {
+#if REVERSE_DIRECTION
+    return (uint8_t)((8 - phase) & 0x07);
+#else
+    return phase;
+#endif
+}
 
 // --- MOTOR PIN MAP (4 coil pins per motor) ---
 // Always defines 5 rows (the full Pico row controller wiring). Only the
@@ -160,7 +179,7 @@ class FlapMotor {
             _currentStep++;
             if (_currentStep >= STEPS_PER_REV) _currentStep = 0;
             _phase = (uint8_t)((_phase + 1) & 0x07);
-            _setCoils(HALFSTEP_PATTERN[_phase]);
+            _setCoils(HALFSTEP_PATTERN[phaseToPattern(_phase)]);
             if (_deltaSteps > 0) _deltaSteps--;
         } else {
             // Idle: de-energize coils to stay cool and quiet.
@@ -183,7 +202,7 @@ class FlapMotor {
     // triggers. Does not touch the acceleration ramp or delta tracking.
     void homeStepForward(uint16_t periodMicros = 3000) {
         _phase = (uint8_t)((_phase + 1) & 0x07);
-        _setCoils(HALFSTEP_PATTERN[_phase]);
+        _setCoils(HALFSTEP_PATTERN[phaseToPattern(_phase)]);
         _currentStep++;
         if (_currentStep >= STEPS_PER_REV) _currentStep = 0;
         delayMicroseconds(periodMicros);
