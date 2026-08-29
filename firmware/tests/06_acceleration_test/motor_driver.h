@@ -74,15 +74,20 @@ static inline uint8_t phaseToPattern(uint8_t phase) {
 // --- MOTOR PIN MAP (4 coil pins per motor) ---
 // Always defines 5 rows (the full Pico row controller wiring). Only the
 // first NUM_MOTORS rows are used, so a 1-motor test build ignores the rest.
-// Single-motor test rigs use motor 0 = pins 6,7,8,9 (matches the other tests).
-// Adjust the later rows to the final Pico PCB wiring.
+//
+// IMPORTANT — coil order: the 28BYJ-48 half-step sequence must drive the
+// coils in the physical order A, C, B, D. On the ULN2003 board wired to
+// GPIO 6,7,8,9 that means the pin map is {6, 8, 7, 9} (middle two swapped).
+// This matches the known-good AccelStepper wiring used in the other tests:
+//   AccelStepper(HALF4WIRE, IN1, IN3, IN2, IN4) == pins 6, 8, 7, 9.
+// Getting this order wrong makes the motor crawl/stutter instead of spin.
 #define MAX_MOTORS 5
 static const uint8_t MOTOR_PINS[MAX_MOTORS][4] = {
-    {  6,  7,  8,  9 },   // Motor 0 (Col 0)
-    { 10, 11, 12, 13 },   // Motor 1 (Col 1)
-    { 14, 15, 16, 17 },   // Motor 2 (Col 2)
-    { 18, 19, 20, 21 },   // Motor 3 (Col 3)
-    { 22, 26, 27, 28 },   // Motor 4 (Col 4)
+    {  6,  8,  7,  9 },   // Motor 0 (Col 0)  — IN1,IN3,IN2,IN4 order
+    { 10, 12, 11, 13 },   // Motor 1 (Col 1)
+    { 14, 16, 15, 17 },   // Motor 2 (Col 2)
+    { 18, 20, 19, 21 },   // Motor 3 (Col 3)
+    { 22, 27, 26, 28 },   // Motor 4 (Col 4)
 };
 
 // ===========================================================
