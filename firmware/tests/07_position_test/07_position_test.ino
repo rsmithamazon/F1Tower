@@ -33,7 +33,7 @@ const bool REVERSE = true;     // spin direction (matches test 06)
 // --- HOMING ---
 // Homes at the same TOP_SPEED / ACCELERATION as normal moves (no
 // separate slow homing speed).
-long  MAX_HOME_STEPS = 2400;   // safety cap (a bit over one revolution)
+long  MAX_HOME_STEPS = 3072;   // safety cap = ~1.5 revolutions (2048 * 1.5)
 
 // --- FLAP GEOMETRY ---
 const int  TOTAL_FLAPS    = 52;
@@ -94,32 +94,31 @@ bool homeMotor() {
     stepper.setMaxSpeed(TOP_SPEED);
     stepper.setAcceleration(ACCELERATION);
     stepper.setCurrentPosition(0);
+    stepper.move(dir * 1000000L);   // one far target; we drive it with run()
 
-    // Spin at full speed (one far target + run() loop, like test 06) and
-    // break the moment the magnet is seen.
-    //
     // Because flap 0 = home = magnet, the drum often STARTS on the magnet.
-    // If so we must first travel clear of the magnet zone, otherwise the
-    // search below would trigger instantly at ~0. So: skip a fixed margin
-    // forward first (ignoring the sensor), THEN look for the next magnet.
-    const long CLEAR_ZONE = 300;   // steps to travel before trusting the sensor
-
-    stepper.move(dir * 1000000L);
-    while (labs(stepper.currentPosition()) < CLEAR_ZONE) {
+    // Roll off ONLY while the magnet is still detected (instead of skipping
+    // a blind fixed distance that could step past a narrow magnet). Cap the
+    // roll-off so a stuck-LOW/failed sensor can't spin forever here.
+    long rollOff = 0;
+    while (isMagnetDetected() && rollOff < STEPS_PER_REV) {
         stepper.run();
+        rollOff = labs(stepper.currentPosition());
     }
 
-    // Search forward at full speed until the magnet triggers, then STOP
-    // right there and call it home (step 0 = flap 0). We stop at the
-    // magnet edge rather than decelerating past it, so home is at a
-    // consistent, repeatable spot for calibration. (A full decel would
-    // coast ~hundreds of steps past home and shift every flap position.)
+    // Now search for the magnet. Count from here and allow up to ~1.5
+    // revolutions so a missed edge or off-by-a-bit start still completes a
+    // full loop before giving up.
+    stepper.setCurrentPosition(0);
     while (!isMagnetDetected()) {
         stepper.run();
         if (labs(stepper.currentPosition()) > MAX_HOME_STEPS) return false;
     }
 
-    stepper.setCurrentPosition(0);   // home = step 0 = flap 0 (at magnet edge)
+    // Stop right at the magnet edge and call it home (step 0 = flap 0).
+    // We do NOT decelerate past it — a full decel would coast hundreds of
+    // steps past home and shift every flap position.
+    stepper.setCurrentPosition(0);
     return true;
 }
 
