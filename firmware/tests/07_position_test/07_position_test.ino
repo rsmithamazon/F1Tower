@@ -95,21 +95,24 @@ bool homeMotor() {
     stepper.setAcceleration(ACCELERATION);
     stepper.setCurrentPosition(0);
 
-    long steps = 0;
-    // If we're sitting ON the magnet already, step off it first so we
-    // detect a fresh edge rather than stopping immediately.
-    while (isMagnetDetected() && steps < 200) {
-        stepper.move(dir * 1);
-        while (stepper.distanceToGo() != 0) stepper.run();
-        steps++;
+    // Give ONE far target and run() continuously so the motor ramps up to
+    // full speed while searching for home (same technique as test 06).
+    // Break the instant the magnet is seen. Homing at one-step-at-a-time
+    // would never build speed (that was the old crawl bug).
+
+    // If we're sitting ON the magnet already, roll off it first so we
+    // catch a fresh edge rather than stopping immediately.
+    stepper.move(dir * 1000000L);
+    while (isMagnetDetected() && labs(stepper.currentPosition()) < 200) {
+        stepper.run();
     }
 
-    steps = 0;
+    // Now search forward at full speed until the magnet triggers.
+    stepper.setCurrentPosition(0);
+    stepper.move(dir * 1000000L);
     while (!isMagnetDetected()) {
-        stepper.move(dir * 1);
-        while (stepper.distanceToGo() != 0) stepper.run();
-        steps++;
-        if (steps > MAX_HOME_STEPS) return false;
+        stepper.run();
+        if (labs(stepper.currentPosition()) > MAX_HOME_STEPS) return false;
     }
 
     stepper.setCurrentPosition(0);   // home = step 0 = flap 0
