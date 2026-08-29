@@ -13,3 +13,6 @@ tmp/
 
 # Large exported vector sheets (kept local only)
 static assets/Vector Sheets/
+
+# Arduino build artifacts
+firmware/build/
