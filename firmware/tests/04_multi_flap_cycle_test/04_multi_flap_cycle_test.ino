@@ -15,7 +15,7 @@
 // ===========================================================
 
 #define NUM_MOTORS 1
-#include <motor_driver.h>                 // from firmware/libraries/FlapMotor
+#include "motor_driver.h"                 // engine copy lives in this sketch folder
 
 // --- CONFIG ---
 int TARGET_FLAP_A    = 10;      // e.g. number "2"

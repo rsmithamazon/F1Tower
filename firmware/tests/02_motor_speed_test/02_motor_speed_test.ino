@@ -16,7 +16,7 @@
 // ===========================================================
 
 #define NUM_MOTORS 1
-#include <motor_driver.h>                 // from firmware/libraries/FlapMotor
+#include "motor_driver.h"                 // engine copy lives in this sketch folder
 
 int   STEPS_TO_MOVE   = 512;    // how far to sweep each cycle (steps)
 int   PAUSE_BETWEEN_MS = 2000;

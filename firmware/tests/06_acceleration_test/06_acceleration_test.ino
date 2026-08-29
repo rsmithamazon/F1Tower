@@ -16,7 +16,7 @@
 // ===========================================================
 
 #define NUM_MOTORS 1                      // single-motor test rig
-#include <motor_driver.h>                 // from firmware/libraries/FlapMotor
+#include "motor_driver.h"                 // engine copy lives in this sketch folder
 
 // --- CONFIG ---
 const int HALL_PIN       = 2;      // Hall sensor (active LOW = magnet at flap 0)

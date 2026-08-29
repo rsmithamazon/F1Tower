@@ -20,7 +20,7 @@
 // ===========================================================
 
 #define NUM_MOTORS 1
-#include <motor_driver.h>                 // from firmware/libraries/FlapMotor
+#include "motor_driver.h"                 // engine copy lives in this sketch folder
 
 // --- CONFIG ---
 bool AUTO_ADVANCE   = false;    // true = auto-advance after delay, false = wait for input
