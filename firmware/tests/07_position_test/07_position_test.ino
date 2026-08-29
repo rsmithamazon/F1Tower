@@ -31,7 +31,8 @@ float ACCELERATION = 3000.0;   // steps/s^2
 const bool REVERSE = true;     // spin direction (matches test 06)
 
 // --- HOMING ---
-float HOME_SPEED     = 400.0;  // slow, reliable speed while searching for home
+// Homes at the same TOP_SPEED / ACCELERATION as normal moves (no
+// separate slow homing speed).
 long  MAX_HOME_STEPS = 2400;   // safety cap (a bit over one revolution)
 
 // --- FLAP GEOMETRY ---
@@ -89,7 +90,8 @@ bool isMagnetDetected() {
 // Returns false if the magnet isn't found within MAX_HOME_STEPS.
 bool homeMotor() {
     int dir = REVERSE ? -1 : 1;
-    stepper.setMaxSpeed(HOME_SPEED);
+    // Home at the normal run speed/accel (no separate slow homing pass).
+    stepper.setMaxSpeed(TOP_SPEED);
     stepper.setAcceleration(ACCELERATION);
     stepper.setCurrentPosition(0);
 
@@ -111,10 +113,23 @@ bool homeMotor() {
     }
 
     stepper.setCurrentPosition(0);   // home = step 0 = flap 0
-    // Restore run speed for the move to the target flap.
-    stepper.setMaxSpeed(TOP_SPEED);
-    stepper.setAcceleration(ACCELERATION);
     return true;
+}
+
+// Print the full flap -> step table to serial (the current mapping).
+void printFlapTable() {
+    Serial.println(F("Flap position table (flap : steps : rev):"));
+    for (int i = 0; i < TOTAL_FLAPS; i++) {
+        Serial.print(F("  flap "));
+        if (i < 10) Serial.print(' ');
+        Serial.print(i);
+        Serial.print(F(" : "));
+        Serial.print(flapSteps[i]);
+        Serial.print(F(" steps : "));
+        Serial.print((float)flapSteps[i] / STEPS_PER_REV, 3);
+        Serial.println(F(" rev"));
+    }
+    Serial.println();
 }
 
 // Home, then advance forward to the target flap's step position.
@@ -159,6 +174,8 @@ void setup() {
     Serial.print(F("Visiting:    ")); Serial.print(LIST_LEN); Serial.println(F(" positions"));
     Serial.println(F("Each move homes first, then advances to the flap."));
     Serial.println();
+
+    printFlapTable();
 }
 
 void loop() {
