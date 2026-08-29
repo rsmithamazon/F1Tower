@@ -86,7 +86,7 @@ bool isMagnetDetected() {
     return detected;
 }
 
-// Spin forward slowly until the magnet is found; set that as step 0.
+// Spin at full speed until the magnet is found; set that spot as step 0.
 // Returns false if the magnet isn't found within MAX_HOME_STEPS.
 bool homeMotor() {
     int dir = REVERSE ? -1 : 1;
@@ -95,27 +95,31 @@ bool homeMotor() {
     stepper.setAcceleration(ACCELERATION);
     stepper.setCurrentPosition(0);
 
-    // Give ONE far target and run() continuously so the motor ramps up to
-    // full speed while searching for home (same technique as test 06).
-    // Break the instant the magnet is seen. Homing at one-step-at-a-time
-    // would never build speed (that was the old crawl bug).
+    // Spin at full speed (one far target + run() loop, like test 06) and
+    // break the moment the magnet is seen.
+    //
+    // Because flap 0 = home = magnet, the drum often STARTS on the magnet.
+    // If so we must first travel clear of the magnet zone, otherwise the
+    // search below would trigger instantly at ~0. So: skip a fixed margin
+    // forward first (ignoring the sensor), THEN look for the next magnet.
+    const long CLEAR_ZONE = 300;   // steps to travel before trusting the sensor
 
-    // If we're sitting ON the magnet already, roll off it first so we
-    // catch a fresh edge rather than stopping immediately.
     stepper.move(dir * 1000000L);
-    while (isMagnetDetected() && labs(stepper.currentPosition()) < 200) {
+    while (labs(stepper.currentPosition()) < CLEAR_ZONE) {
         stepper.run();
     }
 
-    // Now search forward at full speed until the magnet triggers.
-    stepper.setCurrentPosition(0);
-    stepper.move(dir * 1000000L);
+    // Search forward at full speed until the magnet triggers, then STOP
+    // right there and call it home (step 0 = flap 0). We stop at the
+    // magnet edge rather than decelerating past it, so home is at a
+    // consistent, repeatable spot for calibration. (A full decel would
+    // coast ~hundreds of steps past home and shift every flap position.)
     while (!isMagnetDetected()) {
         stepper.run();
         if (labs(stepper.currentPosition()) > MAX_HOME_STEPS) return false;
     }
 
-    stepper.setCurrentPosition(0);   // home = step 0 = flap 0
+    stepper.setCurrentPosition(0);   // home = step 0 = flap 0 (at magnet edge)
     return true;
 }
 
