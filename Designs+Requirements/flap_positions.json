@@ -1,0 +1,76 @@
+{
+  "description": "Master flap->step position map for split-flap drums. 'steps' is the absolute step count from home (flap 0) where each flap shows. This is the source of truth for calibration; fine-tune per flap as needed.",
+  "stepsPerRev": 2048,
+  "totalFlaps": 52,
+  "units": {
+    "reverseDirection": true,
+    "note": "Motor spins in REVERSE on the current rig (matches firmware REVERSE_DIRECTION / test REVERSE flag)."
+  },
+
+  "default": {
+    "description": "Baseline even spacing (2048/52 per flap), rounded. Used for any unit that has no override below. Copy a value into a unit override to fine-tune that flap on that specific unit.",
+    "positions": [
+      { "flap": 0,  "steps": 0,    "rev": 0.000 },
+      { "flap": 1,  "steps": 39,   "rev": 0.019 },
+      { "flap": 2,  "steps": 79,   "rev": 0.038 },
+      { "flap": 3,  "steps": 118,  "rev": 0.058 },
+      { "flap": 4,  "steps": 157,  "rev": 0.077 },
+      { "flap": 5,  "steps": 197,  "rev": 0.096 },
+      { "flap": 6,  "steps": 236,  "rev": 0.115 },
+      { "flap": 7,  "steps": 276,  "rev": 0.135 },
+      { "flap": 8,  "steps": 315,  "rev": 0.154 },
+      { "flap": 9,  "steps": 354,  "rev": 0.173 },
+      { "flap": 10, "steps": 394,  "rev": 0.192 },
+      { "flap": 11, "steps": 433,  "rev": 0.212 },
+      { "flap": 12, "steps": 472,  "rev": 0.231 },
+      { "flap": 13, "steps": 512,  "rev": 0.250 },
+      { "flap": 14, "steps": 551,  "rev": 0.269 },
+      { "flap": 15, "steps": 591,  "rev": 0.288 },
+      { "flap": 16, "steps": 630,  "rev": 0.308 },
+      { "flap": 17, "steps": 669,  "rev": 0.327 },
+      { "flap": 18, "steps": 709,  "rev": 0.346 },
+      { "flap": 19, "steps": 748,  "rev": 0.365 },
+      { "flap": 20, "steps": 788,  "rev": 0.385 },
+      { "flap": 21, "steps": 827,  "rev": 0.404 },
+      { "flap": 22, "steps": 866,  "rev": 0.423 },
+      { "flap": 23, "steps": 906,  "rev": 0.442 },
+      { "flap": 24, "steps": 945,  "rev": 0.462 },
+      { "flap": 25, "steps": 985,  "rev": 0.481 },
+      { "flap": 26, "steps": 1024, "rev": 0.500 },
+      { "flap": 27, "steps": 1063, "rev": 0.519 },
+      { "flap": 28, "steps": 1103, "rev": 0.538 },
+      { "flap": 29, "steps": 1142, "rev": 0.558 },
+      { "flap": 30, "steps": 1181, "rev": 0.577 },
+      { "flap": 31, "steps": 1221, "rev": 0.596 },
+      { "flap": 32, "steps": 1260, "rev": 0.615 },
+      { "flap": 33, "steps": 1300, "rev": 0.635 },
+      { "flap": 34, "steps": 1339, "rev": 0.654 },
+      { "flap": 35, "steps": 1378, "rev": 0.673 },
+      { "flap": 36, "steps": 1418, "rev": 0.692 },
+      { "flap": 37, "steps": 1457, "rev": 0.712 },
+      { "flap": 38, "steps": 1497, "rev": 0.731 },
+      { "flap": 39, "steps": 1536, "rev": 0.750 },
+      { "flap": 40, "steps": 1575, "rev": 0.769 },
+      { "flap": 41, "steps": 1615, "rev": 0.788 },
+      { "flap": 42, "steps": 1654, "rev": 0.808 },
+      { "flap": 43, "steps": 1693, "rev": 0.827 },
+      { "flap": 44, "steps": 1733, "rev": 0.846 },
+      { "flap": 45, "steps": 1772, "rev": 0.865 },
+      { "flap": 46, "steps": 1812, "rev": 0.885 },
+      { "flap": 47, "steps": 1851, "rev": 0.904 },
+      { "flap": 48, "steps": 1890, "rev": 0.923 },
+      { "flap": 49, "steps": 1930, "rev": 0.942 },
+      { "flap": 50, "steps": 1969, "rev": 0.962 },
+      { "flap": 51, "steps": 2009, "rev": 0.981 }
+    ]
+  },
+
+  "unitOverrides": {
+    "description": "Per-unit fine-tuning. Key = unit id (e.g. row/col like 'R0C0'). List only the flaps that differ from default; everything else falls back to default. Example commented shape below.",
+    "example_R0C0": {
+      "1":  41,
+      "26": 1026,
+      "51": 2011
+    }
+  }
+}

@@ -11,8 +11,11 @@
 //   1. Run it, watch which physical flap shows at each stop.
 //   2. If a flap is a bit off, tweak its entry in flapSteps[]
 //      below (add/subtract a few steps), re-upload, re-check.
-//   3. flapSteps[0] = 0 is home (flap 0). Others default to an
-//      even 2048/52 spacing until you fine-tune them.
+//   3. flapSteps[0] = 0 is home (flap 0). Values start at even
+//      2048/52 spacing (same as flap_positions.json "default").
+//   4. When dialed in, copy the finished values into
+//      Designs+Requirements/flap_positions.json (source of truth,
+//      supports per-unit overrides for all 25 units).
 //
 // Serial: 115200 baud. Prints each target flap + step position.
 //
@@ -52,23 +55,22 @@ const int HALL_PIN = 2;
 const int LED_PIN  = LED_BUILTIN;
 AccelStepper stepper(AccelStepper::HALF4WIRE, IN1, IN3, IN2, IN4);
 
-// --- FLAP -> STEP MAPPING ---
-// flapSteps[i] = absolute step position (from home) where flap i shows.
-// Defaults to even spacing; FINE-TUNE individual entries as needed.
-long flapSteps[TOTAL_FLAPS];
+// --- FLAP -> STEP MAPPING (the calibration table) ---
+// flapSteps[i] = absolute step count from home where flap i shows.
+// This is the editable master table for THIS unit under test. It starts
+// as even 2048/52 spacing. Fine-tune any entry that lands off, then copy
+// the finished values into Designs+Requirements/flap_positions.json
+// (the per-unit source of truth for all 25 units).
+long flapSteps[TOTAL_FLAPS] = {
+    0,    39,   79,   118,  157,  197,  236,  276,  315,  354,   // 0-9
+    394,  433,  472,  512,  551,  591,  630,  669,  709,  748,   // 10-19
+    788,  827,  866,  906,  945,  985,  1024, 1063, 1103, 1142,  // 20-29
+    1181, 1221, 1260, 1300, 1339, 1378, 1418, 1457, 1497, 1536,  // 30-39
+    1575, 1615, 1654, 1693, 1733, 1772, 1812, 1851, 1890, 1930,  // 40-49
+    1969, 2009                                                    // 50-51
+};
 
 int listIndex = 0;
-
-void buildFlapTable() {
-    for (int i = 0; i < TOTAL_FLAPS; i++) {
-        flapSteps[i] = (long)((double)STEPS_PER_REV / TOTAL_FLAPS * i + 0.5);
-    }
-    // ----- FINE-TUNE OVERRIDES (uncomment/edit as you map) -----
-    // flapSteps[0]  = 0;      // home
-    // flapSteps[1]  = 39;
-    // flapSteps[26] = 1024;
-    // ... adjust any flap that lands off by a few steps ...
-}
 
 void powerOff() {
     digitalWrite(IN1, LOW);
@@ -147,8 +149,6 @@ void setup() {
     pinMode(LED_PIN, OUTPUT);
     digitalWrite(LED_PIN, LOW);
     delay(1000);
-
-    buildFlapTable();
 
     Serial.println(F("=== POSITION TEST / FLAP MAPPING ==="));
     Serial.print(F("Baud:        ")); Serial.println(SERIAL_BAUD);
